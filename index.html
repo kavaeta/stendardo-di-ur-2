@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="it" class="h-full bg-slate-50 text-slate-800">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lo Stendardo di Ur - Esperienza Interattiva Museale</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        lapis: {
+                            50: '#f0f5ff',
+                            100: '#e0ebfe',
+                            200: '#bae0fd',
+                            600: '#1d4ed8',
+                            700: '#1e40af',
+                            800: '#1e3a8a',
+                            900: '#172554',
+                            950: '#0b1329',
+                        },
+                        amberGold: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            800: '#92400e',
+                        },
+                        sand: {
+                            50: '#faf8f5',
+                            100: '#f5f0ea',
+                            200: '#e8dec8',
+                        }
+                    },
+                    fontFamily: {
+                        cinzel: ['Cinzel', 'serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Custom Scrollbar for Light Theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Pulsing Hotspot Marker for Light Theme */
+        .hotspot-pin {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            z-index: 25;
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .hotspot-pin:hover {
+            transform: translate(-50%, -50%) scale(1.3);
+            z-index: 35;
+        }
+        .hotspot-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: #b45309;
+            border: 2.5px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s ease;
+        }
+        .hotspot-pin.active .hotspot-inner,
+        .hotspot-pin:hover .hotspot-inner {
+            background: #1e3a8a;
+            color: #ffffff;
+            border-color: #fde047;
+            transform: scale(1.1);
+        }
+        .hotspot-pulse {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(245, 158, 11, 0.5);
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.9); opacity: 0.9; }
+            100% { transform: scale(2.3); opacity: 0; }
+        }
+
+        /* 3D Box Perspective */
+        .perspective-container {
+            perspective: 1200px;
+        }
+        .box-3d {
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+        .box-face {
+            position: absolute;
+            box-sizing: border-box;
+            background-color: #0f172a;
+            border: 2px solid #b45309;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backface-visibility: visible;
+        }
+
+        /* Lyre Virtual String */
+        .lyre-string {
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+        .lyre-string::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2.5px;
+            height: 100%;
+            background: linear-gradient(to bottom, #b45309, #f59e0b, #b45309);
+            box-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
+            transition: all 0.15s ease;
+        }
+        .lyre-string:hover::after, .lyre-string.plucked::after {
+            background: #1e40af;
+            box-shadow: 0 0 10px rgba(30, 64, 175, 0.8);
+            transform: translateX(-50%) scaleX(2.5);
+        }
+
+        /* Navigation Tab Pill Styles */
+        .nav-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #475569;
+            background: transparent;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+        .nav-pill:hover {
+            color: #1e3a8a;
+            background: #f1f5f9;
+        }
+        .nav-pill.active {
+            color: #ffffff;
+            background: #1e3a8a;
+            border-color: #1e3a8a;
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25);
+        }
+
+        /* Card styles */
+        .museum-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+            transition: all 0.25s ease;
+        }
+        .museum-card:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.07), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="min-h-full flex flex-col bg-slate-50 text-slate-800">
+
+    <!-- Top Sticky Header -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                
+                <!-- Logo & Title -->
+                <div class="flex items-center gap-3.5 cursor-pointer" onclick="switchTab('explorer')">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-lapis-800 to-lapis-900 text-amber-400 p-0.5 shadow-md shadow-lapis-900/10 flex items-center justify-center">
+                        <i class="fa-solid fa-landmark-dome text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-cinzel text-xl sm:text-2xl font-bold tracking-wide text-slate-900">
+                                LO STENDARDO DI UR
+                            </h1>
+                            <span class="hidden sm:inline-block px-2 py-0.5 text-[11px] font-semibold bg-amber-100 text-amber-800 rounded-full border border-amber-200">
+                                2500 a.C.
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 font-medium">
+                            Civiltà Sumera &bull; British Museum, Londra &bull; Sala 56
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right Quick Utilities (Lyre Instrument + Audio Guide + Language) -->
+                <div class="flex items-center gap-2.5">
+                    <!-- Virtual Lyre Trigger -->
+                    <button onclick="toggleLyreModal()" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 border border-amber-300/80 text-amber-900 text-xs sm:text-sm font-bold rounded-xl flex items-center gap-2 shadow-sm transition transform hover:-translate-y-0.5" title="Suona la Lira Taurina di Ur">
+                        <i class="fa-solid fa-music text-amber-600 animate-pulse"></i>
+                        <span class="hidden md:inline">Lira di Ur</span>
+                    </button>
+
+                    <!-- Voice Guide Trigger -->
+                    <button onclick="toggleGlobalSpeech()" id="btn-audio-guide" class="p-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-lapis-800 rounded-xl text-sm transition" title="Ascolta Introduzione Vocale">
+                        <i id="audio-guide-icon" class="fa-solid fa-volume-high"></i>
+                    </button>
+
+                    <!-- Language Toggle -->
+                    <button onclick="toggleLanguage()" id="btn-lang" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+                        IT
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Horizontal Scrollable Navigation Bar (Always Visible on all screen sizes!) -->
+            <div class="py-2.5 border-t border-slate-100 overflow-x-auto no-scrollbar flex items-center gap-1.5 sm:gap-2">
+                <button onclick="switchTab('explorer')" id="nav-explorer" class="nav-pill active">
+                    <i class="fa-solid fa-eye text-amber-500"></i>
+                    <span>Esplora Pannelli</span>
+                </button>
+                
+                <button onclick="switchTab('3d-view')" id="nav-3d-view" class="nav-pill">
+                    <i class="fa-solid fa-cube text-blue-500"></i>
+                    <span>Cassa 3D</span>
+                </button>
+                
+                <button onclick="switchTab('materials')" id="nav-materials" class="nav-pill">
+                    <i class="fa-solid fa-gem text-rose-500"></i>
+                    <span>Materiali & Rotte</span>
+                </button>
+                
+                <button onclick="switchTab('mindmap')" id="nav-mindmap" class="nav-pill">
+                    <i class="fa-solid fa-sitemap text-emerald-500"></i>
+                    <span>Mappa Mentale</span>
+                </button>
+                
+                <button onclick="switchTab('quiz')" id="nav-quiz" class="nav-pill">
+                    <i class="fa-solid fa-graduation-cap text-amber-500"></i>
+                    <span>Quiz (16 Domande)</span>
+                </button>
+                
+                <button onclick="switchTab('history')" id="nav-history" class="nav-pill">
+                    <i class="fa-solid fa-landmark text-purple-500"></i>
+                    <span>Storia & Misteri</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN BODY CONTAINER -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: INTERACTIVE IMAGE & REGISTER EXPLORER -->
+        <!-- ========================================== -->
+        <div id="tab-explorer" class="tab-pane block space-y-6">
+            
+            <!-- Filter Bar: Panel Switcher + Registers + View Tools -->
+            <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                
+                <!-- Side Toggle: War vs Peace -->
+                <div class="flex items-center gap-2 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                    <button id="btn-face-war" onclick="setPanelSide('war')" class="px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 bg-white text-red-900 border border-red-200 shadow-sm">
+                        <i class="fa-solid fa-shield-halved text-red-600"></i>
+                        <span>Faccia della Guerra</span>
+                    </button>
+                    <button id="btn-face-peace" onclick="setPanelSide('peace')" class="px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900">
+                        <i class="fa-solid fa-dove text-blue-600"></i>
+                        <span>Faccia della Pace</span>
+                    </button>
+                </div>
+
+                <!-- Register Filters -->
+                <div class="flex items-center gap-1.5 flex-wrap text-xs">
+                    <span class="text-slate-500 mr-1 font-semibold">Registri:</span>
+                    <button onclick="filterRegister('all')" id="btn-reg-all" class="reg-btn px-3 py-1.5 rounded-lg bg-lapis-800 text-white font-semibold shadow-sm">Tutti (3)</button>
+                    <button onclick="filterRegister('top')" id="btn-reg-top" class="reg-btn px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium">1. Superiore (Il Re)</button>
+                    <button onclick="filterRegister('mid')" id="btn-reg-mid" class="reg-btn px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium">2. Centrale (Fanteria / Bestiame)</button>
+                    <button onclick="filterRegister('bot')" id="btn-reg-bot" class="reg-btn px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium">3. Inferiore (Carri / Tributi)</button>
+                </div>
+
+                <!-- View Utilities -->
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleHotspotsVisibility()" id="btn-toggle-pins" class="px-3 py-1.5 rounded-lg text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center gap-1.5 font-medium" title="Mostra/Nascondi Punti d'Interesse">
+                        <i class="fa-solid fa-location-dot text-amber-600"></i>
+                        <span class="hidden sm:inline">Punti Attivi</span>
+                    </button>
+                    <button onclick="resetZoom()" class="p-2 rounded-lg text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium" title="Reimposta visuale">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Sumerian Reading Direction Info Banner -->
+            <div class="bg-gradient-to-r from-amber-50 via-slate-50 to-blue-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between text-xs sm:text-sm text-slate-700 shadow-sm">
+                <div class="flex items-center gap-3">
+                    <span class="p-1.5 bg-amber-500/20 text-amber-800 rounded-lg text-base">
+                        <i class="fa-solid fa-arrow-trend-up"></i>
+                    </span>
+                    <div>
+                        <strong class="text-amber-900 font-bold">Convenzione di lettura sumera:</strong>
+                        <span class="text-slate-600"> Si legge <strong>dal basso verso l'alto</strong> (Fascia 3 &rarr; 2 &rarr; 1) e <strong>da sinistra verso destra</strong>, culminando con la figura monumentale del sovrano!</span>
+                    </div>
+                </div>
+                <div class="hidden lg:flex items-center gap-4 text-xs text-slate-500 font-mono">
+                    <span>Dimensioni: 49.5 &times; 21.6 cm</span>
+                    <span>Supporto: Cassetta in legno</span>
+                </div>
+            </div>
+
+            <!-- Explorer Stage: Image Canvas on Left, Details on Right -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- Main Image Area (8 cols) -->
+                <div class="lg:col-span-8 flex flex-col">
+                    <div id="image-stage" class="relative bg-slate-900 rounded-2xl overflow-hidden shadow-md flex items-center justify-center select-none min-h-[460px] border border-slate-300">
+                        
+                        <!-- Pan/Zoom Container -->
+                        <div id="image-transform-box" class="relative max-w-full max-h-full transition-transform duration-200 ease-out origin-center cursor-crosshair">
+                            <img id="main-panel-img" src="faccia della guerra.jpg" alt="Pannello dello Stendardo di Ur" class="max-h-[65vh] w-auto object-contain block mx-auto pointer-events-none rounded" onerror="this.src='immagini/faccia della guerra.jpg';">
+
+                            <!-- Hotspots Overlay Pins -->
+                            <div id="hotspots-layer" class="absolute inset-0 pointer-events-auto">
+                                <!-- Hotspot elements generated by JS -->
+                            </div>
+
+                            <!-- Register Highlight Frame -->
+                            <div id="register-highlight" class="absolute inset-x-0 border-4 border-amber-400 bg-amber-400/20 transition-all duration-300 pointer-events-none opacity-0 rounded"></div>
+                        </div>
+
+                        <!-- Zoom Controls overlay -->
+                        <div class="absolute bottom-4 right-4 flex items-center gap-1 bg-white/95 border border-slate-300 backdrop-blur rounded-xl p-1 text-slate-700 shadow-lg z-20">
+                            <button onclick="adjustZoom(-0.2)" class="p-2 hover:bg-slate-100 rounded-lg transition" title="Zoom indietro"><i class="fa-solid fa-minus text-xs"></i></button>
+                            <span id="zoom-text" class="text-xs font-mono font-bold px-2 text-lapis-800">100%</span>
+                            <button onclick="adjustZoom(0.2)" class="p-2 hover:bg-slate-100 rounded-lg transition" title="Zoom avanti"><i class="fa-solid fa-plus text-xs"></i></button>
+                        </div>
+
+                        <!-- Guide hint -->
+                        <div class="absolute top-4 left-4 bg-white/90 border border-slate-200 backdrop-blur px-3 py-1.5 rounded-lg text-xs text-slate-700 flex items-center gap-2 shadow-sm pointer-events-none">
+                            <i class="fa-solid fa-hand-pointer text-amber-600"></i>
+                            <span>Clicca sui numeri dorati per esplorare la storia</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detail Inspector Card (4 cols) -->
+                <div class="lg:col-span-4 flex flex-col">
+                    <div id="inspector-card" class="bg-white border border-slate-200/90 rounded-2xl p-6 flex flex-col shadow-sm min-h-[460px]">
+                        
+                        <!-- Empty Placeholder State -->
+                        <div id="inspector-placeholder" class="my-auto text-center py-8">
+                            <div class="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mx-auto mb-4 text-2xl shadow-sm">
+                                <i class="fa-regular fa-compass animate-spin-slow"></i>
+                            </div>
+                            <h3 class="font-cinzel text-lg font-bold text-slate-800 mb-2">Esplora i Dettagli</h3>
+                            <p class="text-xs text-slate-500 max-w-xs mx-auto mb-6 leading-relaxed">
+                                Clicca su uno dei punti d'interesse numerati sull'immagine per scoprire l'analisi archeologica, i simboli e i materiali.
+                            </p>
+                            <button onclick="selectHotspot(0)" class="w-full px-4 py-2.5 bg-lapis-50 hover:bg-lapis-100 border border-lapis-200 rounded-xl text-xs font-bold text-lapis-800 transition flex items-center justify-between">
+                                <span>Inizia dal primo dettaglio</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <!-- Active Hotspot Details View -->
+                        <div id="inspector-content" class="hidden flex flex-col h-full space-y-4">
+                            
+                            <!-- Header Badges -->
+                            <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                                <span id="insp-badge-reg" class="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-200">
+                                    Registro Superiore
+                                </span>
+                                <span id="insp-badge-side" class="text-xs text-slate-500 font-medium">
+                                    Guerra
+                                </span>
+                            </div>
+
+                            <!-- Title -->
+                            <h2 id="insp-title" class="font-cinzel text-xl font-bold text-slate-900 leading-snug">
+                                Titolo del Dettaglio
+                            </h2>
+
+                            <!-- Speech Audio Readout -->
+                            <div>
+                                <button id="btn-read-card" onclick="speakCurrentCard()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-2 transition">
+                                    <i class="fa-solid fa-volume-high text-amber-600"></i>
+                                    <span>Ascolta spiegazione</span>
+                                </button>
+                            </div>
+
+                            <!-- Narrative Descriptions -->
+                            <div class="space-y-3 text-xs sm:text-sm text-slate-700 leading-relaxed overflow-y-auto max-h-[300px] pr-1">
+                                <p id="insp-desc-1"></p>
+                                <p id="insp-desc-2" class="text-slate-500 text-xs"></p>
+                                
+                                <!-- Curiosity Box -->
+                                <div class="bg-amber-50/80 border border-amber-200 rounded-xl p-3 text-xs">
+                                    <div class="font-bold text-amber-900 flex items-center gap-1.5 mb-1">
+                                        <i class="fa-solid fa-lightbulb text-amber-600"></i>
+                                        <span>Curiosità Archeologica:</span>
+                                    </div>
+                                    <p id="insp-curiosity" class="text-amber-800 leading-relaxed"></p>
+                                </div>
+
+                                <!-- Materials used -->
+                                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs">
+                                    <span class="text-slate-500 font-bold block mb-1">Materiali e tessere impiegate:</span>
+                                    <div id="insp-materials" class="flex flex-wrap gap-1.5">
+                                        <!-- tags -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Next / Prev Hotspot Buttons -->
+                            <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                                <button onclick="prevHotspot()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-left"></i> Prec
+                                </button>
+                                <span id="insp-index-indicator" class="text-xs font-mono text-slate-500">1 di 8</span>
+                                <button onclick="nextHotspot()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-1">
+                                    Succ <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: 3D TRAPEZOIDAL BOX RECONSTRUCTION   -->
+        <!-- ========================================== -->
+        <div id="tab-3d-view" class="tab-pane hidden space-y-6">
+            
+            <div class="museum-card p-6">
+                <div class="max-w-3xl">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full mb-3 inline-block">
+                        Forma e Volume dell'Opera
+                    </span>
+                    <h2 class="font-cinzel text-2xl font-bold text-slate-900 mb-2">Ricostruzione della Cassa Trapezoidale 3D</h2>
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                        Lo Stendardo di Ur non è un quadro dipinto bidimensionale, bensì una <strong>cassa cava di legno a prisma trapezoidale</strong> (alta 21.6 cm, larga 49.5 cm, con base profonda 11 cm e sommità rastremata a soli 5 cm).
+                        Trascina il mouse (o il dito su touch screen) per ruotare la cassa nello spazio a 360&deg; ed esaminare entrambi i pannelli principali e le due testate laterali trapezoidali.
+                    </p>
+                </div>
+            </div>
+
+            <!-- 3D Stage Container -->
+            <div class="museum-card p-8 flex flex-col items-center justify-center relative min-h-[520px] bg-gradient-to-b from-slate-100 to-slate-200 overflow-hidden">
+                
+                <!-- 3D Control Buttons -->
+                <div class="absolute top-4 left-4 z-30 bg-white/95 border border-slate-200 rounded-xl p-2.5 flex flex-wrap gap-2 text-xs shadow-md">
+                    <button onclick="set3DPreset('war')" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-900 border border-red-200 rounded-lg font-bold">Fronte: Guerra</button>
+                    <button onclick="set3DPreset('peace')" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 rounded-lg font-bold">Retro: Pace</button>
+                    <button onclick="set3DPreset('side-left')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-medium">Pannello Sinistro</button>
+                    <button onclick="set3DPreset('side-right')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-lg font-medium">Pannello Destro</button>
+                    <button onclick="toggle3DAutoRotate()" id="btn-3d-autorotate" class="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg font-bold">
+                        <i class="fa-solid fa-rotate mr-1"></i> Auto-Rotazione
+                    </button>
+                </div>
+
+                <div class="absolute bottom-4 text-xs text-slate-500 z-30 flex items-center gap-2 bg-white/80 px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
+                    <i class="fa-solid fa-arrows-up-down-left-right text-amber-600"></i>
+                    <span>Trascina con il cursore per ruotare la cassa</span>
+                </div>
+
+                <!-- 3D Perspective Canvas -->
+                <div id="perspective-stage" class="perspective-container w-full h-full flex items-center justify-center cursor-grab active:cursor-grabbing select-none py-12">
+                    
+                    <div id="box3d-object" class="box-3d w-[440px] h-[200px]" style="transform: rotateX(-10deg) rotateY(25deg);">
+                        
+                        <!-- Front Face: WAR -->
+                        <div class="box-face w-[440px] h-[200px] border-amber-600 shadow-2xl overflow-hidden" style="transform: translateZ(55px);">
+                            <img src="faccia della guerra.jpg" class="w-full h-full object-cover" alt="Faccia della Guerra">
+                            <span class="absolute top-2 left-2 px-2 py-0.5 bg-black/75 text-amber-300 text-[10px] rounded font-cinzel">GUERRA</span>
+                        </div>
+
+                        <!-- Back Face: PEACE -->
+                        <div class="box-face w-[440px] h-[200px] border-cyan-600 shadow-2xl overflow-hidden" style="transform: rotateY(180deg) translateZ(55px);">
+                            <img src="faccia della pace.jpg" class="w-full h-full object-cover" alt="Faccia della Pace">
+                            <span class="absolute top-2 left-2 px-2 py-0.5 bg-black/75 text-cyan-300 text-[10px] rounded font-cinzel">PACE</span>
+                        </div>
+
+                        <!-- Left Face: Trapezoidal End (Anzu Eagle) -->
+                        <div class="box-face w-[110px] h-[200px] bg-slate-900 border-amber-700 flex flex-col justify-between p-3 text-white" style="transform: rotateY(-90deg) translateZ(220px);">
+                            <div class="text-[9px] font-cinzel text-amber-400 text-center border-b border-slate-700 pb-1">PANNELLO LATERALE</div>
+                            <div class="text-center my-auto">
+                                <i class="fa-solid fa-crow text-3xl text-amber-300 mb-1"></i>
+                                <div class="text-[10px] font-bold">Aquila Anzû</div>
+                                <div class="text-[8px] text-slate-400">Testa di leone & stambecchi</div>
+                            </div>
+                            <div class="text-[8px] text-slate-500 text-center">British Museum</div>
+                        </div>
+
+                        <!-- Right Face: Trapezoidal End (Tree of Life) -->
+                        <div class="box-face w-[110px] h-[200px] bg-slate-900 border-amber-700 flex flex-col justify-between p-3 text-white" style="transform: rotateY(90deg) translateZ(220px);">
+                            <div class="text-[9px] font-cinzel text-amber-400 text-center border-b border-slate-700 pb-1">PANNELLO LATERALE</div>
+                            <div class="text-center my-auto">
+                                <i class="fa-solid fa-tree text-3xl text-emerald-400 mb-1"></i>
+                                <div class="text-[10px] font-bold">Albero Sacro</div>
+                                <div class="text-[8px] text-slate-400">Capre e motivi vegetali</div>
+                            </div>
+                            <div class="text-[8px] text-slate-500 text-center">Intarsio su bitume</div>
+                        </div>
+
+                        <!-- Top Face: Slanted Roof -->
+                        <div class="box-face w-[440px] h-[110px] bg-amber-950 border-amber-600 flex items-center justify-center text-amber-300" style="transform: rotateX(90deg) translateZ(100px);">
+                            <span class="text-xs font-mono">Bordo sommitale (5 cm)</span>
+                        </div>
+
+                        <!-- Bottom Face: Base -->
+                        <div class="box-face w-[440px] h-[110px] bg-slate-950 border-amber-900 flex items-center justify-center text-slate-400" style="transform: rotateX(-90deg) translateZ(100px);">
+                            <span class="text-xs font-mono">Base d'appoggio (11 cm)</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: MATERIALS & ANCIENT TRADE ROUTES    -->
+        <!-- ========================================== -->
+        <div id="tab-materials" class="tab-pane hidden space-y-6">
+            
+            <div class="museum-card p-6">
+                <span class="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-full mb-3 inline-block">
+                    Geopolitica & Commercio
+                </span>
+                <h2 class="font-cinzel text-2xl font-bold text-slate-900 mb-2">Materiali Preziosi & Rotte Commerciali</h2>
+                <p class="text-sm text-slate-600 leading-relaxed max-w-4xl">
+                    La pianura alluvionale mesopotamica tra Tigri ed Eufrate era ricchissima di cereali e argilla, ma <strong>totalmente priva di pietre semipreziose, legname pregiato e metalli</strong>.
+                    I materiali dello Stendardo testimoniano l'esistenza di rotte marittime e carovaniere che si estendevano per migliaia di chilometri già nel 2500 a.C.!
+                </p>
+            </div>
+
+            <!-- Material 4 Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Lapis Lazuli -->
+                <div class="museum-card p-5 border-t-4 border-t-blue-600 flex flex-col">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center text-xl mb-4 border border-blue-200">
+                        <i class="fa-solid fa-gem"></i>
+                    </div>
+                    <h3 class="font-cinzel text-lg font-bold text-slate-900 mb-1">Lapislazzuli</h3>
+                    <div class="text-xs font-semibold text-blue-700 mb-3 flex items-center gap-1">
+                        <i class="fa-solid fa-location-dot"></i> Badakhshan (Afghanistan) ~2500 km
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-4 flex-1">
+                        Pietra blu oltremare con inclusioni dorate di pirite. Utilizzata per formare il cielo e il fondale piatto dell'opera, associata alla divinità e al manto della notte sacra.
+                    </p>
+                    <div class="text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-700 font-medium">
+                        Funzione: Sfondo uniforme e pupille
+                    </div>
+                </div>
+
+                <!-- Shell / Mother of Pearl -->
+                <div class="museum-card p-5 border-t-4 border-t-amber-500 flex flex-col">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center text-xl mb-4 border border-amber-200">
+                        <i class="fa-solid fa-cubes-stacked"></i>
+                    </div>
+                    <h3 class="font-cinzel text-lg font-bold text-slate-900 mb-1">Conchiglie Marine</h3>
+                    <div class="text-xs font-semibold text-amber-700 mb-3 flex items-center gap-1">
+                        <i class="fa-solid fa-location-dot"></i> Coste Indiane & Golfo Persico
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-4 flex-1">
+                        Grandi valve di conchiglie oceaniche intagliate a silhouette per formare i corpi dei personaggi, i cavalli-onagri e i vestiti a frange di pecora (*kaunakes*).
+                    </p>
+                    <div class="text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-700 font-medium">
+                        Funzione: Figure, animali, carri
+                    </div>
+                </div>
+
+                <!-- Red Limestone -->
+                <div class="museum-card p-5 border-t-4 border-t-rose-600 flex flex-col">
+                    <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-700 flex items-center justify-center text-xl mb-4 border border-rose-200">
+                        <i class="fa-solid fa-mountain"></i>
+                    </div>
+                    <h3 class="font-cinzel text-lg font-bold text-slate-900 mb-1">Calcare Rosso</h3>
+                    <div class="text-xs font-semibold text-rose-700 mb-3 flex items-center gap-1">
+                        <i class="fa-solid fa-location-dot"></i> Altopiano Iranico / Anatolia
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-4 flex-1">
+                        Pietra calcarea sedimentaria di colore rossastro. Usata per i motivi geometrici a triangoli e losanghe della cornice e per i finimenti di briglie e mantelli.
+                    </p>
+                    <div class="text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-700 font-medium">
+                        Funzione: Cornice ornamentale e briglie
+                    </div>
+                </div>
+
+                <!-- Bitumen -->
+                <div class="museum-card p-5 border-t-4 border-t-slate-700 flex flex-col">
+                    <div class="w-12 h-12 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center text-xl mb-4 border border-slate-300">
+                        <i class="fa-solid fa-droplet"></i>
+                    </div>
+                    <h3 class="font-cinzel text-lg font-bold text-slate-900 mb-1">Pasta di Bitume</h3>
+                    <div class="text-xs font-semibold text-slate-700 mb-3 flex items-center gap-1">
+                        <i class="fa-solid fa-location-dot"></i> Sorgenti di Hit (Mesopotamia)
+                    </div>
+                    <p class="text-xs text-slate-600 leading-relaxed mb-4 flex-1">
+                        Idrocarburo naturale vischioso affiorante dal terreno. Scaldato per fare da collante universale sul legno; colato poi nelle incisioni per disegnare occhi e muscoli.
+                    </p>
+                    <div class="text-[11px] bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-slate-700 font-medium">
+                        Funzione: Malta adesiva e inchiostro d'incisione
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Trade Routes Schematic -->
+            <div class="museum-card p-6">
+                <h3 class="font-cinzel text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-map-location-dot text-amber-600"></i>
+                    <span>La Rete Commerciale Globale della Mesopotamia Antica</span>
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="p-4 bg-blue-50/60 rounded-xl border border-blue-200">
+                        <span class="text-xs font-mono font-bold text-blue-800">1. Rotta Orientale (Terra)</span>
+                        <h4 class="font-bold text-slate-900 text-sm mt-1 mb-1">La Via del Lapislazzuli</h4>
+                        <p class="text-xs text-slate-600">
+                            Dalle aspre montagne del Pamir e Badakhshan attraverso l'Altopiano Iranico fino a Susa e a Ur. Una carovana impiegava mesi per attraversarla.
+                        </p>
+                    </div>
+
+                    <div class="p-4 bg-amber-50/60 rounded-xl border border-amber-200">
+                        <span class="text-xs font-mono font-bold text-amber-800">2. Rotta Marittima del Golfo</span>
+                        <h4 class="font-bold text-slate-900 text-sm mt-1 mb-1">Dilmun, Magan e Meluhha</h4>
+                        <p class="text-xs text-slate-600">
+                            Navi sumere solcavano il Golfo Persico fino all'Oman (rame) e alla Valle dell'Indo (conchiglie marine giganti, perle e corniola).
+                        </p>
+                    </div>
+
+                    <div class="p-4 bg-rose-50/60 rounded-xl border border-rose-200">
+                        <span class="text-xs font-mono font-bold text-rose-800">3. Rotta Fluviale Nord-Ovest</span>
+                        <h4 class="font-bold text-slate-900 text-sm mt-1 mb-1">Risalita di Tigri ed Eufrate</h4>
+                        <p class="text-xs text-slate-600">
+                            Scambi con la Siria settentrionale e l'Anatolia per procurarsi tronchi di cedro del Libano e pietre calcaree per l'architettura monumentale.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: MENTAL MAP (CONCEPT TREE)           -->
+        <!-- ========================================== -->
+        <div id="tab-mindmap" class="tab-pane hidden space-y-6">
+            
+            <div class="museum-card p-6 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full mb-2 inline-block">
+                        Albero Concettuale
+                    </span>
+                    <h2 class="font-cinzel text-2xl font-bold text-slate-900 mb-1">Mappa Mentale Interattiva</h2>
+                    <p class="text-xs text-slate-500">Esplora la struttura concettuale dell'opera sumera</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="expandAllMindMap()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg border border-slate-200">
+                        <i class="fa-solid fa-expand mr-1"></i> Espandi Tutto
+                    </button>
+                    <button onclick="collapseAllMindMap()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg border border-slate-200">
+                        <i class="fa-solid fa-compress mr-1"></i> Comprimi Tutto
+                    </button>
+                    <input type="text" id="map-search-input" oninput="searchMindMap(this.value)" placeholder="Cerca concetto..." class="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-lapis-800 focus:ring-1 focus:ring-lapis-800">
+                </div>
+            </div>
+
+            <!-- Mind Map Tree Items -->
+            <div id="mindmap-tree-container" class="space-y-4">
+                <!-- Branches injected dynamically -->
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: INTERACTIVE 16-QUESTION QUIZ        -->
+        <!-- ========================================== -->
+        <div id="tab-quiz" class="tab-pane hidden space-y-6 max-w-4xl mx-auto">
+            
+            <div class="museum-card p-6 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full mb-2 inline-block">
+                        Verifica Didattica
+                    </span>
+                    <h2 class="font-cinzel text-2xl font-bold text-slate-900 mb-1">Quiz Interattivo Completo (16 Domande)</h2>
+                    <p class="text-xs text-slate-500">Seleziona un'opzione per verificare all'istante la correttezza e leggere le motivazioni</p>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="bg-amber-50 px-4 py-2 rounded-xl border border-amber-200 flex items-center gap-3">
+                        <i class="fa-solid fa-award text-amber-600 text-2xl"></i>
+                        <div>
+                            <span class="text-[10px] uppercase font-mono text-slate-500 block font-bold">Punteggio</span>
+                            <span id="quiz-live-score" class="text-lg font-bold text-amber-900">0 / 16</span>
+                        </div>
+                    </div>
+                    <button onclick="resetQuizState()" class="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl border border-slate-200 text-xs transition font-semibold" title="Ricomincia Quiz">
+                        <i class="fa-solid fa-arrow-rotate-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Questions List -->
+            <div id="quiz-container" class="space-y-6">
+                <!-- Dynamically populated 16 questions -->
+            </div>
+
+            <!-- Final Evaluation Box -->
+            <div id="quiz-final-box" class="hidden museum-card p-8 text-center border-2 border-amber-400 bg-gradient-to-b from-amber-50/50 to-white">
+                <div class="w-20 h-20 rounded-full bg-amber-100 border-2 border-amber-400 text-amber-600 text-3xl flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <i id="final-badge-icon" class="fa-solid fa-crown"></i>
+                </div>
+                <h3 id="final-badge-title" class="font-cinzel text-2xl font-bold text-slate-900 mb-2">Re Sovrano di Ur!</h3>
+                <p id="final-badge-desc" class="text-sm text-slate-600 max-w-md mx-auto mb-6">
+                    Congratulazioni! Hai dimostrato una conoscenza eccezionale dello Stendardo e della civiltà sumera.
+                </p>
+                <div class="text-4xl font-bold font-mono text-slate-900 mb-6">
+                    <span id="final-score-val" class="text-amber-600">16</span> / 16
+                </div>
+                <button onclick="resetQuizState()" class="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm transition shadow-md shadow-amber-600/20">
+                    Ricomincia il Quiz
+                </button>
+            </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 6: HISTORY, EXCAVATION & HYPOTHESES   -->
+        <!-- ========================================== -->
+        <div id="tab-history" class="tab-pane hidden space-y-6 max-w-5xl mx-auto">
+            
+            <div class="museum-card p-6">
+                <span class="text-xs font-bold uppercase tracking-wider text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-1 rounded-full mb-3 inline-block">
+                    Archeologia & Restauro
+                </span>
+                <h2 class="font-cinzel text-2xl font-bold text-slate-900 mb-2">La Scoperta di Leonard Woolley & I Misteri di Ur</h2>
+                <p class="text-sm text-slate-600 leading-relaxed">
+                    Come fu rinvenuto lo Stendardo nel 1927-1928 durante gli scavi dell'archeologo britannico <strong>Sir Leonard Woolley</strong> nella tomba PG 779 del Cimitero Reale di Ur, e il dibattito aperto sulla sua reale funzione.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="museum-card p-6">
+                    <div class="flex items-center gap-3 text-amber-700 text-xl mb-3">
+                        <i class="fa-solid fa-skull"></i>
+                        <h3 class="font-cinzel font-bold text-slate-900 text-lg">La Tomba Reale PG 779</h3>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        L'oggetto fu rinvenuto in un angolo della camera sepolcrale PG 779, adagiato vicino alla spalla di uno scheletro maschile che Woolley ipotizzò fosse il portatore ufficiale dello stendardo di corte.
+                        La struttura interna in legno era totalmente scomparsa per degradazione organica, lasciando le migliaia di tasselli di madreperla e lapislazzuli compressi nel sedimento.
+                    </p>
+                </div>
+
+                <div class="museum-card p-6">
+                    <div class="flex items-center gap-3 text-blue-700 text-xl mb-3">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <h3 class="font-cinzel font-bold text-slate-900 text-lg">Il Miracolo del Restauro</h3>
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        Per preservare la posizione millimetrica delle singole tessere, Woolley versò cera d'api bollente e garze imbevute di gesso liquido direttamente sui frammenti sul campo di scavo.
+                        Una volta solidificata la matrice, le sezioni furono sollevate intatte e ricomposte con accuratezza scientifica nelle gallerie del British Museum.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Hypotheses Cards -->
+            <div class="museum-card p-6">
+                <h3 class="font-cinzel text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-question text-amber-600"></i>
+                    <span>A cosa serviva? Le 4 Grandi Ipotesi degli Studiosi</span>
+                </h3>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <div class="p-4 bg-amber-50/60 rounded-xl border border-amber-200">
+                        <div class="flex items-center justify-between mb-1">
+                            <h4 class="font-bold text-slate-900 text-sm">1. Stendardo Militare su Asta</h4>
+                            <span class="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded">Teoria Woolley</span>
+                        </div>
+                        <p class="text-xs text-slate-600">
+                            Portato in cima a una picca o bastone durante parate trionfali ed esercitazioni belliche; questa interpretazione iniziale diede all'oggetto il nome di "Stendardo".
+                        </p>
+                    </div>
+
+                    <div class="p-4 bg-blue-50/60 rounded-xl border border-blue-200">
+                        <div class="flex items-center justify-between mb-1">
+                            <h4 class="font-bold text-slate-900 text-sm">2. Cassa Armonica di uno Strumento</h4>
+                            <span class="text-[10px] bg-blue-200 text-blue-900 font-bold px-2 py-0.5 rounded">Molto Accreditata</span>
+                        </div>
+                        <p class="text-xs text-slate-600">
+                            La cassa cava e rastremata è analoga alla struttura di risonanza delle arpe e lire taurine scoperte nelle tombe adiacenti (come la Lira d'Oro della Regina Puabi).
+                        </p>
+                    </div>
+
+                    <div class="p-4 bg-emerald-50/60 rounded-xl border border-emerald-200">
+                        <div class="flex items-center justify-between mb-1">
+                            <h4 class="font-bold text-slate-900 text-sm">3. Scrigno per Tesori e Documenti</h4>
+                            <span class="text-[10px] bg-emerald-200 text-emerald-900 font-bold px-2 py-0.5 rounded">Uso Funerario</span>
+                        </div>
+                        <p class="text-xs text-slate-600">
+                            Una cassetta di prestigio destinata a custodire manufatti preziosi, sigilli cilindrici o beni cerimoniali, poi offerta come dono al sovrano defunto per l'aldilà.
+                        </p>
+                    </div>
+
+                    <div class="p-4 bg-purple-50/60 rounded-xl border border-purple-200">
+                        <div class="flex items-center justify-between mb-1">
+                            <h4 class="font-bold text-slate-900 text-sm">4. Elemento di Arredo Palatino</h4>
+                            <span class="text-[10px] bg-purple-200 text-purple-900 font-bold px-2 py-0.5 rounded">Studi Recenti</span>
+                        </div>
+                        <p class="text-xs text-slate-600">
+                            Un leggio cerimoniale o supporto per un trono o statua cultuale, posizionato permanentemente all'interno della sala delle udienze regali o del tempio del dio Luna Nanna.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- LYRE VIRTUAL INSTRUMENT MODAL (WEB AUDIO SYNTHESIZER) -->
+    <div id="lyre-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border border-amber-300 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative flex flex-col">
+            
+            <button onclick="toggleLyreModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-4 mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center text-2xl shadow-sm">
+                    <i class="fa-solid fa-bullhorn"></i>
+                </div>
+                <div>
+                    <h3 class="font-cinzel text-xl sm:text-2xl font-bold text-slate-900">La Lira Taurina di Ur</h3>
+                    <p class="text-xs text-slate-500 font-medium">Sintetizzatore Acustico Fisico &bull; Web Audio API</p>
+                </div>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-600 mb-6 leading-relaxed">
+                Nel Pannello della Pace (registro superiore a destra), un musico suona una celebre <strong>lira sumera con testa di toro</strong> in oro e lapislazzuli.
+                Tocca o passa con il cursore sulle corde per pizzicarle, oppure avvia la melodia mesopotamica antica registrata!
+            </p>
+
+            <!-- Virtual Lyre Instrument -->
+            <div class="bg-slate-900 border-2 border-amber-500/60 rounded-2xl p-6 relative overflow-hidden flex flex-col items-center mb-6 text-white shadow-inner">
+                
+                <div class="flex items-center gap-2 mb-4 text-amber-400">
+                    <i class="fa-solid fa-head-side-mask text-2xl"></i>
+                    <span class="font-cinzel text-xs tracking-widest text-amber-300">ACCORDATURA RE-DORICA MESOPOTAMICA</span>
+                </div>
+
+                <!-- 8 Virtual Lyre Strings -->
+                <div class="w-full flex justify-between h-48 px-4 sm:px-8 bg-slate-950/80 rounded-xl border border-slate-800">
+                    
+                    <div onclick="pluckLyreNote(0)" onmouseenter="pluckOnHover(0)" class="lyre-string flex-1 flex flex-col items-center justify-between py-2 group">
+                        <span class="text-[10px] font-mono text-slate-400 group-hover:text-amber-300 font-bold">D4</span>
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500/40 group-hover:bg-amber-400 transition"></div>
+                        <span class="text-[9px] text-slate-500">Re</span>
+                    </div>
+
+                    <div onclick="pluckLyreNote(1)" onmouseenter="pluckOnHover(1)" class="lyre-string flex-1 flex flex-col items-center justify-between py-2 group">
+                        <span class="text-[10px] font-mono text-slate-400 group-hover:text-amber-300 font-bold">E4</span>
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500/40 group-hover:bg-amber-400 transition"></div>
+                        <span class="text-[9px] text-slate-500">Mi</span>
+                    </div>
+
+                    <div onclick="pluckLyreNote(2)" onmouseenter="pluckOnHover(2)" class="lyre-string flex-1 flex flex-col items-center justify-between py-2 group">
+                        <span class="text-[10px] font-mono text-slate-400 group-hover:text-amber-300 font-bold">F4</span>
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500/40 group-hover:bg-amber-400 transition"></div>
+                        <span class="text-[9px] text-slate-500">Fa</span>
+                    </div>
+
+                    <div onclick="pluckLyreNote(3)" onmouseenter="pluckOnHover(3)" class="lyre-string flex-1 flex flex-col items-center justify-between py-2 group">
+                        <span class="text-[10px] font-mono text-slate-400 group-hover:text-amber-300 font-bold">G4</span>
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500/40 group-hover:bg-amber-400 transition"></div>
+                        <span class="text-[9px] text-slate-500">Sol</span>
+                    </div>
+
+                    <div onclick="pluckLyreNote(4)" onmouseenter="pluckOnHover(4)" class="lyre-string flex-1 flex flex-col items-center justify-between py-2 group">
+                        <span class="text-[10px] font-mono text-slate-400 group-hover:text-amber-300 font-bold">A4</span>
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500/40 group-hover:bg-amber-400 transition"></div>
+                        <span class="text-[9px] text-slate-500">La</span>
+                    </div>
+
+                    <div onclick="pluckLyreNote(5)" onmouseenter="pluckOnHover(5)" class="lyre-string flex-1 flex flex-col items-center justify-between py-2 group">
+                        <span class="text-[10px] font-mono text-slate-400 group-hover:text-amber-300 font-bold">Bb4</span>
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500/40 group-hover:bg-amber-400 transition"></div>
+                        <span class="text-[9px] text-slate-500">Sib</span>
+                    </div>
+
+                    <div onclick="pluckLyreNote(6)" onmouseenter="pluckOnHover(6)" class="lyre-string flex-1 flex flex-col items-center justify-between py-2 group">
+                        <span class="text-[10px] font-mono text-slate-400 group-hover:text-amber-300 font-bold">C5</span>
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500/40 group-hover:bg-amber-400 transition"></div>
+                        <span class="text-[9px] text-slate-500">Do</span>
+                    </div>
+
+                    <div onclick="pluckLyreNote(7)" onmouseenter="pluckOnHover(7)" class="lyre-string flex-1 flex flex-col items-center justify-between py-2 group">
+                        <span class="text-[10px] font-mono text-slate-400 group-hover:text-amber-300 font-bold">D5</span>
+                        <div class="w-2.5 h-2.5 rounded-full bg-amber-500/40 group-hover:bg-amber-400 transition"></div>
+                        <span class="text-[9px] text-slate-500">Re</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Auto Melody Playback -->
+            <div class="flex items-center justify-between gap-4">
+                <button onclick="playAncientMelody()" id="btn-play-melody" class="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 transition shadow-md shadow-amber-600/20">
+                    <i class="fa-solid fa-play"></i>
+                    <span>Suona Melodia Antica Automatica</span>
+                </button>
+                <span class="text-xs text-slate-500 font-medium">Inno Urrita n. 6 Reconstructed</span>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        /* ============================================================== */
+        /* DATA: HOTSPOTS FOR WAR & PEACE SIDES                           */
+        /* ============================================================== */
+        const hotspotsData = {
+            war: [
+                {
+                    id: 'w-king',
+                    register: 'top',
+                    regTitle: 'Registro Superiore',
+                    x: 52, y: 22,
+                    title: 'Il Re (Lugal) e la Scala Gerarchica',
+                    desc1: 'Al centro della composizione spicca la figura imponente del sovrano sumero. In virtù della prospettiva gerarchica, il re è raffigurato notevolmente più alto di tutti gli altri personaggi, tanto che la sua testa sfonda il bordo superiore della cornice.',
+                    desc2: 'Il re è ritratto in piedi, rivolto verso destra, con la mano che stringe uno scettro o lancia rituale. Indossa una veste cerimoniale e viene scortato dai suoi ufficiali e dal carro reale da guerra pronto all\'uso alle sue spalle.',
+                    curiosity: 'Il re non è una divinità (come accadeva per i faraoni egizi contemporanei), ma l\'En o Lugal, cioè il vicario e amministratore terreno del dio protettore di Ur (Nanna).',
+                    materials: ['Madreperla', 'Lapislazzuli', 'Bitume'],
+                    readText: "Il Re o Lugal al centro del registro superiore dello Stendardo di Ur. È raffigurato più grande di tutti gli altri per evidenziare la sua maestà gerarchica."
+                },
+                {
+                    id: 'w-prisoners-top',
+                    register: 'top',
+                    regTitle: 'Registro Superiore',
+                    x: 78, y: 23,
+                    title: 'I Prigionieri Condotti al Giudizio',
+                    desc1: 'I nemici vinti vengono scortati al cospetto del re dai soldati vincitori. Sono rappresentati completamente spogliati delle loro armi e delle vesti, con le braccia legate dietro la schiena con corde.',
+                    desc2: 'La nudità nell\'iconografia vicino-orientale antica rappresenta la totale perdita di status sociale, dignità e protezione divina, ridotti al rango di bottino umano da impiegare nei lavori forzati.',
+                    curiosity: 'Nota le ferite incise con linee di bitume scuro sui corpi dei prigionieri, testimonianza del realismo drammatico dell\'artista sumero.',
+                    materials: ['Conchiglia marina', 'Lapislazzuli', 'Incisioni in Bitume'],
+                    readText: "I prigionieri di guerra condotti al cospetto del re. Sono mostrati nudi e legati, a simboleggiare la loro completa sottomissione."
+                },
+                {
+                    id: 'w-chariot-king',
+                    register: 'top',
+                    regTitle: 'Registro Superiore',
+                    x: 18, y: 23,
+                    title: 'Il Carro Reale e la Guardia Scelta',
+                    desc1: 'A sinistra del sovrano attende il magnifico carro reale con il cocchiere e due attendenti armati di lancia. Il carro è decorato con elementi metallici e finimenti raffinati.',
+                    desc2: 'I quattro equidi che trainano il carro sono addobbati con morsi, redini cerimoniali e anelli passanti con figurine in rame sormontate.',
+                    curiosity: 'Il cavallo vero e proprio non era ancora diffuso in Mesopotamia nel 2500 a.C.; gli animali usati erano onagri (asini selvatici asiatici) o kunga (ibridi di asino e onagro appositamente allevati).',
+                    materials: ['Madreperla', 'Lapislazzuli', 'Calcare rosso'],
+                    readText: "Il carro da guerra personale del re, pronto alle sue spalle con i guerrieri della scorta d'élite."
+                },
+                {
+                    id: 'w-phalanx',
+                    register: 'mid',
+                    regTitle: 'Registro Centrale',
+                    x: 22, y: 52,
+                    title: 'La Falange della Fanteria Pesante',
+                    desc1: 'Una compatta formazione di otto fanti regolari sumeri marcia a ranghi serrati verso destra. Ognuno indossa un elmetto protettivo di rame a cuffia e un pesante mantello di cuoio rinforzato con borchie metalliche rotonde.',
+                    desc2: 'I soldati avanzano con lance puntate orizzontalmente in perfetta sincronia. Questa è una delle primissime rappresentazioni al mondo di un esercito organizzato a ranghi compatti.',
+                    curiosity: 'Gli elmetti a cuffia trovati nelle tombe reali di Ur da Leonard Woolley sono identici a quelli disegnati nello Stendardo, in rame martellato con imbottitura interna in feltro.',
+                    materials: ['Conchiglia marina', 'Bitume'],
+                    readText: "La fanteria pesante sumera che marcia a ranghi serrati con elmetti di rame, mantelli borchiati e lance."
+                },
+                {
+                    id: 'w-skirmish',
+                    register: 'mid',
+                    regTitle: 'Registro Centrale',
+                    x: 62, y: 52,
+                    title: 'Il Combattimento e la Cattura dei Fuggitivi',
+                    desc1: 'Al centro e a destra del registro centrale si consuma lo scontro: i soldati sumeri abbattono e disarmano gli avversari. Un guerriero trafigge un nemico con la lancia mentre altri costringono i superstiti alla resa.',
+                    desc2: 'I nemici sono raffigurati con barbe incolte e capigliature disordinate, in netto contrasto con i sumeri dal cranio e viso rasati.',
+                    curiosity: 'L\'opposizione visiva tra l\'ordine dei sumeri e il disordine dei nemici barbari è un tema costante dell\'ideologia mesopotamica.',
+                    materials: ['Conchiglia', 'Lapislazzuli'],
+                    readText: "La scena del combattimento aperto: i guerrieri di Ur catturano i nemici in rotta."
+                },
+                {
+                    id: 'w-chariot-walk',
+                    register: 'bot',
+                    regTitle: 'Registro Inferiore',
+                    x: 15, y: 84,
+                    title: 'Carro 1: Il Passo Calmo dell\'Avvio',
+                    desc1: 'Nel registro inferiore quattro carri si muovono da sinistra a destra. Il primo carro avanza al passo lento, con i quattro asini a testa alta e le zampe anteriori ben piantate a terra.',
+                    desc2: 'Il carro ha ruote piene composte da due semidischi di legno massiccio uniti insieme, senza raggi.',
+                    curiosity: 'Il registro inferiore rappresenta una straordinaria "animazione sequenziale", antesignana del cinema: mostra lo stesso carro in 4 fasi crescenti di velocità!',
+                    materials: ['Conchiglia', 'Lapislazzuli', 'Calcare rosso'],
+                    readText: "Il primo carro parte al passo lento. Notare le ruote piene in legno, tipiche del terzo millennio avanti Cristo."
+                },
+                {
+                    id: 'w-chariot-trot',
+                    register: 'bot',
+                    regTitle: 'Registro Inferiore',
+                    x: 38, y: 84,
+                    title: 'Carro 2: Il Trotto Accellerato',
+                    desc1: 'Il secondo carro inizia ad accelerare: i quattro onagri allungano il passo al trotto, le teste si abbassano leggermente e le redini sono tese nelle mani del conduttore.',
+                    desc2: 'A bordo di ogni carro ci sono due soldati: il cocchiere che guida e il guerriero pronto a lanciare giavellotti conservati in un fodero fissato sulla fiancata del carro.',
+                    curiosity: 'Gli onagri sono animali noti per la loro foga indomita; addestrarli al traino di guerra era considerata una delle massime prodezze tecniche dei sumeri.',
+                    materials: ['Conchiglia', 'Lapislazzuli'],
+                    readText: "Il secondo carro acelera al trotto: il movimento prende velocità nella narrazione visiva."
+                },
+                {
+                    id: 'w-chariot-gallop',
+                    register: 'bot',
+                    regTitle: 'Registro Inferiore',
+                    x: 75, y: 84,
+                    title: 'Carri 3 e 4: Il Galoppo e il Nemico Calpestato',
+                    desc1: 'Il culmine drammatico della carica: gli onagri sono lanciati a galoppo sfrenato, con tutte e quattro le zampe sollevate da terra. Sotto gli zoccoli e le ruote pesanti giacciono i corpi nudi dei nemici abbattuti.',
+                    desc2: 'Il nemico calpestato è raffigurato contorto dal dolore con ferite sanguinanti, mentre il carro trionfante gli passa sopra senza pietà.',
+                    curiosity: 'L\'effetto ottico del calpestamento dei cadaveri era un monito psicologico diretto a chiunque osasse ribellarsi alla sovranità della città di Ur.',
+                    materials: ['Conchiglia', 'Lapislazzuli', 'Calcare rosso'],
+                    readText: "I carri al galoppo travolgono i nemici caduti. Una delle prime rappresentazioni di movimento dinamico nella storia dell'arte."
+                }
+            ],
+            peace: [
+                {
+                    id: 'p-king-banquet',
+                    register: 'top',
+                    regTitle: 'Registro Superiore',
+                    x: 35, y: 22,
+                    title: 'Il Re al Banchetto Sacro',
+                    desc1: 'Il sovrano è seduto a sinistra rivolto verso i suoi dignitari. Anche qui è l\'individuo di gran lunga più grande del pannello. Siede su uno splendido sedile con zampe d\'animale intagliate.',
+                    desc2: 'Il re indossa il caratteristico kaunakes, la pregiata veste rituale di bioccoli di lana di pecora, lasciando il busto nudo secondo il costume cerimoniale sumero. Solleva nella mano destra una coppa d\'oro per il brindisi.',
+                    curiosity: 'Le coppe d\'oro massiccio scoperte da Woolley nella tomba della regina Puabi a Ur corrispondono esattamente alla forma di quella tenuta in mano dal sovrano nello Stendardo!',
+                    materials: ['Madreperla', 'Lapislazzuli'],
+                    readText: "Il Re banchetta solennemente, seduto su un trono con zampe bovine e vestito con la tipica sottana di vello di pecora, il kaunakes."
+                },
+                {
+                    id: 'p-nobles',
+                    register: 'top',
+                    regTitle: 'Registro Superiore',
+                    x: 60, y: 22,
+                    title: 'I Sei Dignitari di Corte',
+                    desc1: 'Sei alti funzionari o sacerdoti siedono su sgabelli di fronte al sovrano, ciascuno con la propria coppa sollevata in segno di onore e comunione con il re.',
+                    desc2: 'Hanno tutti la testa e il viso accuratamente rasati e indossano il kaunakes. I loro corpi sono brevilinei e compatti, riflettendo il canone estetico sumero di maestosa monumentalità.',
+                    curiosity: 'Cosa bevevano? In Mesopotamia la birra d\'orzo aromatizzata e il vino di datteri o uva erano le bevande d\'eccellenza consumate durante i festeggiamenti regali.',
+                    materials: ['Madreperla', 'Lapislazzuli'],
+                    readText: "I sei cortigiani e notabili seduti brindano al re durante la celebrazione della vittoria e dell'abbondanza."
+                },
+                {
+                    id: 'p-lyre',
+                    register: 'top',
+                    regTitle: 'Registro Superiore',
+                    x: 88, y: 22,
+                    title: 'L\'Arpista e la Lira Taurina con Cantante',
+                    desc1: 'All\'estremità destra del registro superiore, la musica allieta gli ospiti: un musicista suona una magnifica lira decorata con una protome taurina (testa di toro), mentre alle sue spalle una cantante accompagna il brano con le mani giunte sul petto.',
+                    desc2: 'La lira raffigurata ha una cassa armonica a forma di toro accovacciato, esattamente come le lire reali scoperte a Ur da Sir Leonard Woolley.',
+                    curiosity: 'Puoi suonare questa stessa lira aprendo il modulo musicale in alto! La lira sumera è uno dei più antichi strumenti a corda complessi giunti fino a noi.',
+                    materials: ['Madreperla', 'Lapislazzuli', 'Calcare rosso'],
+                    readText: "L'arpista suona la splendida lira con la testa di toro, affiancato da un cantante. L'esatto strumento è stato rinvenuto nella Necropoli Reale di Ur."
+                },
+                {
+                    id: 'p-cattle',
+                    register: 'mid',
+                    regTitle: 'Registro Centrale',
+                    x: 28, y: 52,
+                    title: 'La Sfilata del Bestiame da Banchetto',
+                    desc1: 'Nel registro centrale, servitori e contadini conducono animali selezionati per il banchetto o come offerta sacrificale al dio: tori gobbi (zebù), arieti dalle corna ritorte e capre.',
+                    desc2: 'Gli animali sono ritratti con straordinario naturalismo anatomico, mostrando le costole, le corna cesellate nella conchiglia e le morbide ondulazioni del vello ovino.',
+                    curiosity: 'Il contrasto cromatico tra la conchiglia bianca delle vacche e il blu profondo del lapislazzuli crea un effetto di raffinatissimo rilievo ottico.',
+                    materials: ['Conchiglia marina', 'Lapislazzuli'],
+                    readText: "I servi conducono bovini, pecore e capre destinati al banchetto di corte o al sacrificio per gli dei."
+                },
+                {
+                    id: 'p-fish',
+                    register: 'mid',
+                    regTitle: 'Registro Centrale',
+                    x: 75, y: 52,
+                    title: 'I Pescatori e le Offerte delle Acque',
+                    desc1: 'Uomini robusti trasportano pesci giganti infilzati su cordami e ceste ricolme di selvaggina d\'acqua dolce, pescate nelle lagune e nei canali che circondavano la città di Ur vicina alla foce dell\'Eufrate.',
+                    desc2: 'I personaggi procedono verso sinistra (in direzione ideale verso il re che sta al piano di sopra a sinistra), a rimarcare il flusso dei tributi verso il potere centrale.',
+                    curiosity: 'L\'economia sumera si fondava su una capillare rete di canalizzazione irrigua governata dal tempio e dal palazzo, capace di sfamare decine di migliaia di cittadini.',
+                    materials: ['Conchiglia', 'Lapislazzuli'],
+                    readText: "Pescatori che trasportano il pescato delle ricche paludi mesopotamiche verso i magazzini del palazzo."
+                },
+                {
+                    id: 'p-porters',
+                    register: 'bot',
+                    regTitle: 'Registro Inferiore',
+                    x: 30, y: 84,
+                    title: 'I Portatori dei Tributi e delle Riserve',
+                    desc1: 'Nella fascia inferiore contadini, servi e stranieri sottomessi trasportano sacchi colmi di granaglie, recipienti di provviste e legna legata con corde sostenute sulla fronte o sulle spalle.',
+                    desc2: 'È la base economica su cui si regge l\'intera società sumera: la ricchezza agricola della pianura alluvionale mesopotamica convogliata nei granai del re.',
+                    curiosity: 'Questo registro testimonia la complessa burocrazia di Ur: ogni sacco consegnato veniva sigillato con cretule e registrato da scribi su tavolette d\'argilla cuneiformi.',
+                    materials: ['Conchiglia', 'Lapislazzuli'],
+                    readText: "La fascia inferiore della Pace mostra i lavoratori e i servi che trasportano pesanti sacchi di tributi."
+                },
+                {
+                    id: 'p-donkeys-bot',
+                    register: 'bot',
+                    regTitle: 'Registro Inferiore',
+                    x: 75, y: 84,
+                    title: 'La Carovana degli Asini da Soma',
+                    desc1: 'Conducenti guidano asini carichi di merci e bisacce. A differenza dei carri da guerra del pannello opposto, qui gli asini svolgono un pacifico lavoro logistico e agricolo.',
+                    desc2: 'Gli animali avanzano docili con le orecchie dritte, accompagnati da mandriani che tengono le briglie corte.',
+                    curiosity: 'Notare il parallelismo simbolico: in guerra l\'asino travolge i nemici sui carri; in pace l\'asino trasporta il raccolto e garantisce la sussistenza della comunità.',
+                    materials: ['Conchiglia marina', 'Lapislazzuli'],
+                    readText: "Gli asini da soma avanzano docili con i carichi. Mostrano il ruolo pacifico del lavoro nei campi rispetto all'uso bellico."
+                }
+            ]
+        };
+
+        /* ============================================================== */
+        /* DATA: COMPLETE 16 QUIZ QUESTIONS                               */
+        /* ============================================================== */
+        const quizData = [
+            {
+                q: "Cosa viene raffigurato nella fascia più bassa (registro inferiore) del Pannello della guerra nello Stendardo di Ur?",
+                options: [
+                    { text: "I soldati in marcia protetti da elmetti a cuffia e armati di lance orizzontali.", correct: false, exp: "Errata. Descrive la fascia centrale (secondo registro) del Pannello della guerra, dove sfila la fanteria sumera." },
+                    { text: "Quattro carri militari trainati da asini che travolgono i nemici sconfitti.", correct: true, exp: "Corretta. Nel registro inferiore del Pannello della guerra compaiono quattro carri da guerra con ruote piene e asini che travolgono i corpi dei nemici vinti." },
+                    { text: "Il sovrano al centro che riceve i prigionieri di guerra nudi.", correct: false, exp: "Errata. Descrive il registro superiore (terzo registro) del Pannello della guerra, con il re di dimensioni maggiori." },
+                    { text: "Una fila di servi che trasportano i tributi in vista del banchetto di celebrazione.", correct: false, exp: "Errata. Questa scena appartiene al registro inferiore del Pannello della pace, dove si portano i tributi." }
+                ]
+            },
+            {
+                q: "Da dove provengono le conchiglie marine impiegate nelle intarsiature e negli intagli dello Stendardo di Ur?",
+                options: [
+                    { text: "Dal Mar Rosso.", correct: false, exp: "Errata. Nel testo e nelle fonti archeologiche non è menzionato il Mar Rosso." },
+                    { text: "Dal Mar Mediterraneo.", correct: false, exp: "Errata. Il Mar Mediterraneo non è la fonte delle conchiglie usate a Ur." },
+                    { text: "Dalle coste indiane.", correct: true, exp: "Corretta. La fonte specifica espressamente che le conchiglie marine intarsiate provengono dalle coste indiane, evidenziando le rotte commerciali marittime sumere verso la Valle dell'Indo." },
+                    { text: "Dal Golfo Persico.", correct: false, exp: "Errata. Benché Ur fosse vicina al Golfo Persico, le conchiglie speciali usate per gli intagli dell'opera provenivano specificamente dalle coste indiane." }
+                ]
+            },
+            {
+                q: "I pannelli laterali dello Stendardo di Ur presentano una forma trapezoidale. Quale soggetto mitologico viene raffigurato su di essi?",
+                options: [
+                    { text: "Un leone nell'atto di azzannare una gazzella.", correct: false, exp: "Errata. Non è la figura peculiare raffigurata sui pannelli laterali dello Stendardo." },
+                    { text: "Un'aquila dalla testa di leone.", correct: true, exp: "Corretta. L'articolo indica che i pannelli laterali trapezoidali riportano immagini mitologiche, tra cui l'aquila leontocefala Anzû (o Imdugud), simbolo divino mesopotamico." },
+                    { text: "Un toro alato con testa umana (Lamassu).", correct: false, exp: "Errata. Il Lamassu è un elemento scultoreo dell'arte assira, sviluppatosi circa 1500 anni dopo." },
+                    { text: "Un grifone che custodisce un albero della vita.", correct: false, exp: "Errata. Il grifone non è citato tra i soggetti dei pannelli laterali dello Stendardo." }
+                ]
+            },
+            {
+                q: "Quale sostanza viene utilizzata dagli artigiani sumeri come collante per fissare le tessere incrostate al supporto di legno?",
+                options: [
+                    { text: "Resina di pino selvatico.", correct: false, exp: "Errata. La resina di pino non era il legante impiegato per questo intarsio." },
+                    { text: "Pasta nera di bitume.", correct: true, exp: "Corretta. Tutti i materiali (conchiglie, madreperla, calcare rosso e lapislazzuli) sono legati fra loro mediante pasta nera di bitume naturale mesopotamico." },
+                    { text: "Cera d'api naturale.", correct: false, exp: "Errata. La cera d'api veniva usata in altre tecniche (es. fusione a cera persa o nel restauro moderno di Woolley), non come collante originario dello Stendardo." },
+                    { text: "Stucco di gesso e calce.", correct: false, exp: "Errata. Lo stucco di gesso non è la sostanza adesiva indicata nelle fonti archeologiche sumere." }
+                ]
+            },
+            {
+                q: "In che modo deve essere 'letta' la narrazione visiva nei tre registri dei pannelli principali dello Stendardo?",
+                options: [
+                    { text: "Dall'alto verso il basso e da destra a sinistra.", correct: false, exp: "Errata. È la direzione opposta rispetto al principio narrativo sumero." },
+                    { text: "Da sinistra a destra e dal basso verso l'alto.", correct: true, exp: "Corretta. I due pannelli principali si leggono da sinistra a destra e dal basso verso l'alto, iniziando dall'azione e culminando con il re nel registro superiore." },
+                    { text: "In senso orario partendo dal centro del pannello.", correct: false, exp: "Errata. La narrazione non ha una struttura circolare o oraria." },
+                    { text: "Da destra a sinistra e dal centro verso i margini.", correct: false, exp: "Errata. Il senso di lettura non procede dal centro verso i margini." }
+                ]
+            },
+            {
+                q: "Nel registro superiore del Pannello della guerra, come viene resa riconoscibile la figura del sovrano rispetto al suo seguito?",
+                options: [
+                    { text: "Indossa una corona d'oro tempestata di lapislazzuli.", correct: false, exp: "Errata. Nel testo non si fa menzione di una corona d'oro con lapislazzuli per identificare il re." },
+                    { text: "È raffigurato più alto degli altri personaggi per indicare la sua superiorità gerarchica.", correct: true, exp: "Corretta. In virtù della prospettiva gerarchica, il re è raffigurato più alto del suo seguito, sfondando visivamente il bordo del registro superiore." },
+                    { text: "È l'unico personaggio mostrato con il corpo interamente di fronte.", correct: false, exp: "Errata. Anche il re rispetta le convenzioni sumere con testa e gambe di profilo e occhio frontale." },
+                    { text: "Siede su un trono rialzato al centro del campo di battaglia.", correct: false, exp: "Errata. Nel Pannello della guerra il re è in piedi ad attendere i prigionieri; siede su un sedile nel Pannello della pace." }
+                ]
+            },
+            {
+                q: "Quale abbigliamento caratterizza i soldati sumeri raffigurati nel secondo registro (centrale) del Pannello della guerra?",
+                options: [
+                    { text: "Cotte di maglia in bronzo e scudi rettangolari.", correct: false, exp: "Errata. Le cotte di maglia in bronzo appartengono a epoche molto successive." },
+                    { text: "Elmetti a cuffia e mantelli di cuoio decorati con borchie metalliche.", correct: true, exp: "Corretta. La fonte descrive i fanti in marcia vestiti con elmetti a cuffia e mantelli di cuoio decorati con borchie metalliche rotonde, armati di lunghe lance." },
+                    { text: "Tuniche di lino bianco e corazze di piastre di ferro.", correct: false, exp: "Errata. Il lino e il ferro non sono i materiali descritti per l'equipaggiamento della fanteria sumera nello Stendardo." },
+                    { text: "Mantelli di lana di pecora (kaunakes) e copricapi piumati.", correct: false, exp: "Errata. Il kaunakes è la sottana indossata nel banchetto della pace, non il mantello della fanteria in guerra." }
+                ]
+            },
+            {
+                q: "Cosa indossano il sovrano, i cortigiani e gli invitati seduti nel registro superiore del Pannello della pace?",
+                options: [
+                    { text: "Mantelli di cuoio guarniti con borchie metalliche.", correct: false, exp: "Errata. I mantelli di cuoio borchiato sono usati dai soldati nel Pannello della guerra." },
+                    { text: "Il kaunakes, la caratteristica sottana di vello di pecora.", correct: true, exp: "Corretta. I commensali e il re indossano il kaunakes (sottana a frange di vello di pecora), lasciando il torace nudo e radendosi testa e viso." },
+                    { text: "Longhe toghe di lino plissettato finemente ricamate.", correct: false, exp: "Errata. Le toghe di lino non sono l'abbigliamento tipico sumero raffigurato qui." },
+                    { text: "Armature da cerimonia in lamina d'oro e conchiglia.", correct: false, exp: "Errata. Non vengono indossate armature da cerimonia durante la scena conviviale del banchetto." }
+                ]
+            },
+            {
+                q: "Cosa viene rappresentato nel registro inferiore (prima fascia) del Pannello della pace?",
+                options: [
+                    { text: "Schiavi che conducono gli animali al macello per il banchetto.", correct: false, exp: "Errata. Questa raffigurazione si trova nella fascia centrale (secondo registro) della Pace." },
+                    { text: "Una fila di servi o di stranieri vinti che portano i tributi al re.", correct: true, exp: "Corretta. La fascia inferiore del Pannello della pace mostra una fila di servi o lavoratori che trasportano sacchi e tributi per i magazzini regali." },
+                    { text: "Quattro carri militari trainati da asini in parata.", correct: false, exp: "Errata. I carri militari si trovano nel registro inferiore del Pannello della guerra." },
+                    { text: "Musicisti e cantanti che allietano il sovrano con un'arpa.", correct: false, exp: "Errata. L'arpista e la cantante si trovano nel registro superiore del Pannello della pace." }
+                ]
+            },
+            {
+                q: "Cosa raffigura la fascia centrale (secondo registro) del Pannello della pace?",
+                options: [
+                    { text: "Soldati in marcia che spingono prigionieri nudi.", correct: false, exp: "Errata. Questa è la scena del registro centrale del Pannello della guerra." },
+                    { text: "Schiavi che recano gli animali al macello per la preparazione del banchetto.", correct: true, exp: "Corretta. Nel registro centrale della Pace, gli inservienti portano bovini e ovini destinati alla preparazione del banchetto regio." },
+                    { text: "Il re seduto su un prezioso sedile con piedi a zampa d'animale.", correct: false, exp: "Errata. Il re e i cortigiani seduti appartengono al registro superiore." },
+                    { text: "Personaggi che innalzano calici brindando in onore del re.", correct: false, exp: "Errata. Il brindisi con i calici si svolge nel registro superiore durante il banchetto." }
+                ]
+            },
+            {
+                q: "Nel registro superiore del Pannello della pace, quali figure si trovano sulla destra per allietare gli ospiti del banchetto?",
+                options: [
+                    { text: "Un gruppo di ballerini mascherati e un flautista.", correct: false, exp: "Errata. Non sono presenti ballerini mascherati nel registro del banchetto." },
+                    { text: "Un arpista e una cantante.", correct: true, exp: "Corretta. La fonte indica chiaramente che sulla destra un arpista e una cantante allietano gli ospiti; la lira/arpa raffigurata è identica a quelle reali taurine rinvenute a Ur." },
+                    { text: "Un poeta recitante e un suonatore di tamburo.", correct: false, exp: "Errata. Non sono raffigurati poeti o tamburi nella scena intarsiata." },
+                    { text: "Un giocoliere e due servitori che versano il vino.", correct: false, exp: "Errata. Non figurano giocolieri nell'iconografia dello Stendardo." }
+                ]
+            },
+            {
+                q: "Rispetto alla pittura egizia, come appaiono le proporzioni del corpo umano nell'arte sumerica dello Stendardo?",
+                options: [
+                    { text: "Molto slanciate, eleganti e caratterizzate da un ritmo raffinato.", correct: false, exp: "Errata. Questo stile slanciato ed elegante è tipico dell'arte egizia, contrapposta a quella sumera." },
+                    { text: "Brevilinee e tarchiate, con una netta prevalenza del tronco sugli arti.", correct: true, exp: "Corretta. Le figure sumere sono brevilinee e tarchiate (tronco prevalente sugli arti), per comunicare un'impressione di solida compostezza e monumentalità d'insieme." },
+                    { text: "Perfettamente naturalistiche e rispettose delle proporzioni anatomiche classiche.", correct: false, exp: "Errata. L'artista evita l'illusionismo prospettico e il canone anatomico classico greco." },
+                    { text: "Gigantesche e deformate senza alcuna regola rappresentativa.", correct: false, exp: "Errata. Le figure seguono canoni rigorosi e convenzioni ben precise, non sono deformate a caso." }
+                ]
+            },
+            {
+                q: "Quale particolare stilistico dimostra una 'ricerca di naturalismo' da parte dell'anonimo artista sumero?",
+                options: [
+                    { text: "La sfumatura chiaroscurale dei volti e dei muscoli.", correct: false, exp: "Errata. L'arte sumera non utilizzava lo sfumato chiaroscurale." },
+                    { text: "La cura nel disegno dei malleoli delle caviglie e dei singoli bioccoli di lana del vestito.", correct: true, exp: "Corretta. L'articolo evidenzia che, pur rifiutando la profondità spaziale, l'artista mostra naturalismo nei malleoli delle caviglie e nei bioccoli di lana a balze del kaunakes." },
+                    { text: "Lo scorcio prospettico delle ruote dei carri da guerra.", correct: false, exp: "Errata. Non c'è scorcio prospettico; le ruote e i carri sono visti rigidamente di profilo." },
+                    { text: "La rappresentazione paesaggistica delle montagne di sfondo.", correct: false, exp: "Errata. Lo sfondo è totalmente privo di paesaggio naturale, costituito da un fondo piatto in tessere blu di lapislazzuli." }
+                ]
+            },
+            {
+                q: "In quale contesto archeologico è stato rinvenuto lo Stendardo di Ur?",
+                options: [
+                    { text: "Nel tempio del dio Marduk a Babilonia.", correct: false, exp: "Errata. Babilonia e il tempio di Marduk appartengono a un altro contesto geografico e temporale." },
+                    { text: "In una tomba della Necropoli reale di Ur.", correct: true, exp: "Corretta. Lo Stendardo fu ritrovato nel 1927-28 in frammenti nella tomba PG 779 del Cimitero/Necropoli reale di Ur (risalente al 2500 a.C. circa)." },
+                    { text: "Nel palazzo reale di Ninive in Assiria.", correct: false, exp: "Errata. Ninive è una città assira del nord, non il luogo di ritrovamento dello Stendardo." },
+                    { text: "Nel santuario di Enlil a Nippur.", correct: false, exp: "Errata. L'opera proviene da Ur, non dal santuario di Nippur." }
+                ]
+            },
+            {
+                q: "Quali pietre preziose formano rispettivamente lo sfondo blu intenso e i dettagli rossi degli intarsi dello Stendardo?",
+                options: [
+                    { text: "Turchese per lo sfondo e diaspro rosso per i dettagli.", correct: false, exp: "Errata. Il turchese e il diaspro non sono i materiali principali dell'intarsio." },
+                    { text: "Lapislazzuli per lo sfondo e pietra calcarea rossastra per i dettagli.", correct: true, exp: "Corretta. Il fondo blu è realizzato con tessere di lapislazzuli (da Badakhshan), mentre le note cromatiche rosse sono date da pietra calcarea rossastra." },
+                    { text: "Pasta di vetro blu per lo sfondo e corallo per i dettagli.", correct: false, exp: "Errata. Non si tratta di pasta di vetro o corallo, ma di pietre e conchiglie naturali incastonate." },
+                    { text: "Azzurrite per lo sfondo e diaspro per i dettagli.", correct: false, exp: "Errata. L'azzurrite non è il minerale impiegato nello Stendardo di Ur." }
+                ]
+            },
+            {
+                q: "Quale tra le seguenti ipotesi NON è mai stata proposta dagli studiosi riguardo alla funzione dello Stendardo di Ur?",
+                options: [
+                    { text: "Cassa di risonanza di uno strumento musicale.", correct: false, exp: "Errata. La cassa di risonanza per uno strumento musicale (lira/arpa) è una delle ipotesi più autorevoli tra gli studiosi." },
+                    { text: "Elemento decorativo portato in processione issato su un bastone.", correct: false, exp: "Errata. L'ipotesi dello 'stendardo' da processione su asta è quella proposta da Woolley che ha dato storicamente il nome all'oggetto." },
+                    { text: "Trono pieghevole utilizzato dal re durante le campagne militari.", correct: true, exp: "Corretta. L'opera è una cassetta di legno chiusa e intarsiata con pareti inclinate; non è mai stata ipotizzata come trono pieghevole." },
+                    { text: "Arredo esposto all'interno di un palazzo o di un tempio.", correct: false, exp: "Errata. La collocazione fissa come cassa decorativa o scrigno in un palazzo o tempio è un'altra ipotesi formulata dagli studiosi." }
+                ]
+            }
+        ];
+
+        /* ============================================================== */
+        /* DATA: MIND MAP HIERARCHY TREE                                  */
+        /* ============================================================== */
+        const mindMapStructure = [
+            {
+                id: 'm-gen',
+                title: '1. Informazioni Generali',
+                icon: 'fa-landmark',
+                color: 'amber',
+                children: [
+                    { label: 'Civiltà', val: 'Sumera (Mesopotamia meridionale)' },
+                    { label: 'Datazione', val: '2500 a.C. circa (Periodo Protodinastico III)' },
+                    { label: 'Luogo di ritrovamento', val: 'Necropoli Reale di Ur (Tomba PG 779)' },
+                    { label: 'Scopritore', val: 'Sir Leonard Woolley (scavi 1927-1928)' },
+                    { label: 'Collocazione attuale', val: 'British Museum, Londra' },
+                    { label: 'Dimensioni', val: 'Altezza: 21.6 cm • Larghezza: 49.5 cm • Spessore: 11 / 5 cm' }
+                ]
+            },
+            {
+                id: 'm-mat',
+                title: '2. Materiali & Tecnica',
+                icon: 'fa-gem',
+                color: 'blue',
+                children: [
+                    { label: 'Tecnica artistica', val: 'Intarsio su legno (figure incastonate nel legante)' },
+                    { label: 'Legante adesivo', val: 'Pasta di bitume naturale mesopotamico' },
+                    { label: 'Lapislazzuli', val: 'Provenienza: Badakhshan (Afghanistan) ~2500 km per il fondo blu' },
+                    { label: 'Madreperla & Conchiglia', val: 'Provenienza: Coste indiane e Golfo Persico per le figure' },
+                    { label: 'Calcare rosso', val: 'Provenienza: Turchia / Iran per cornici e finimenti' }
+                ]
+            },
+            {
+                id: 'm-war',
+                title: '3. Pannello della Guerra',
+                icon: 'fa-shield-halved',
+                color: 'red',
+                children: [
+                    { label: 'Registro Superiore', val: 'Il Re (Lugal) più alto al centro, carro reale, prigionieri nudi legati' },
+                    { label: 'Registro Centrale', val: 'Fanteria sumera in elmetto e mantello borchiato con lance, prigionieri' },
+                    { label: 'Registro Inferiore', val: '4 carri trainati da onagri in sequenza di velocità crescente (passo, trotto, galoppo su cadaveri)' },
+                    { label: 'Messaggio ideologico', val: 'Trionfo dell\'ordine urbano sumero sul caos dei popoli barbari confinanti' }
+                ]
+            },
+            {
+                id: 'm-peace',
+                title: '4. Pannello della Pace',
+                icon: 'fa-dove',
+                color: 'cyan',
+                children: [
+                    { label: 'Registro Superiore', val: 'Banchetto del re con calici, sei cortigiani in kaunakes, arpista e cantante' },
+                    { label: 'Registro Centrale', val: 'Mandriani e servi che conducono buoi, pecore e pescato per il convito' },
+                    { label: 'Registro Inferiore', val: 'Lavoratori e asini che trasportano sacchi di tributi e provviste' },
+                    { label: 'Messaggio ideologico', val: 'Celebrazione della prosperità agricola, della pace e del favore degli dei' }
+                ]
+            },
+            {
+                id: 'm-style',
+                title: '5. Stile & Canoni Rappresentativi',
+                icon: 'fa-palette',
+                color: 'emerald',
+                children: [
+                    { label: 'Prospettiva gerarchica', val: 'Dimensione proporzionale all\'importanza sociale (Re sovrastante)' },
+                    { label: 'Senso di lettura', val: 'Dal basso verso l\'alto (3 → 2 → 1) e da sinistra verso destra' },
+                    { label: 'Corpo umano', val: 'Testa e gambe di profilo, occhio e spalle/torso frontali' },
+                    { label: 'Proporzioni', val: 'Figure brevilinee e tarchiate con tronco predominante per dare monumentalità' },
+                    { label: 'Dettagli naturalistici', val: 'Malleoli delle caviglie, ciocche del kaunakes, muscoli degli onagri' }
+                ]
+            }
+        ];
+
+        /* ============================================================== */
+        /* APPLICATION STATE                                              */
+        /* ============================================================== */
+        let currentTab = 'explorer';
+        let currentSide = 'war';
+        let currentRegisterFilter = 'all';
+        let currentHotspotIndex = -1;
+        let isHotspotsVisible = true;
+        let zoomLevel = 1.0;
+        let panX = 0, panY = 0;
+        let currentLang = 'it';
+        let isSpeaking = false;
+
+        // 3D Box variables
+        let rotX = -10, rotY = 25;
+        let is3DAutoRotating = true;
+        let is3DDragging = false;
+        let last3DMouseX = 0, last3DMouseY = 0;
+        let autoRotateTimer = null;
+
+        /* ============================================================== */
+        /* INITIALIZATION                                                 */
+        /* ============================================================== */
+        window.addEventListener('DOMContentLoaded', () => {
+            renderHotspots();
+            renderMindMap();
+            renderQuiz();
+            init3DController();
+        });
+
+        /* ============================================================== */
+        /* TAB SWITCHING FUNCTION (BULLETPROOF & DIRECT)                  */
+        /* ============================================================== */
+        function switchTab(tabId) {
+            currentTab = tabId;
+
+            // Hide all tab content panes
+            const panes = document.querySelectorAll('.tab-pane');
+            panes.forEach(pane => {
+                pane.classList.add('hidden');
+                pane.classList.remove('block');
+            });
+
+            // Show selected tab pane
+            const targetPane = document.getElementById('tab-' + tabId);
+            if (targetPane) {
+                targetPane.classList.remove('hidden');
+                targetPane.classList.add('block');
+            }
+
+            // Update active pill style in navigation bar
+            const navPills = document.querySelectorAll('.nav-pill');
+            navPills.forEach(pill => {
+                pill.classList.remove('active');
+            });
+            const activePill = document.getElementById('nav-' + tabId);
+            if (activePill) {
+                activePill.classList.add('active');
+            }
+
+            // Manage 3D rotation timer
+            if (tabId === '3d-view' && is3DAutoRotating) {
+                start3DAutoRotate();
+            } else {
+                stop3DAutoRotate();
+            }
+
+            // Scroll cleanly to top of content
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* ============================================================== */
+        /* TAB 1: EXPLORER LOGIC (WAR / PEACE / HOTSPOTS)                 */
+        /* ============================================================== */
+        function setPanelSide(side) {
+            currentSide = side;
+            const img = document.getElementById('main-panel-img');
+            const warBtn = document.getElementById('btn-face-war');
+            const peaceBtn = document.getElementById('btn-face-peace');
+
+            if(side === 'war') {
+                img.src = 'faccia della guerra.jpg';
+                warBtn.className = "px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 bg-white text-red-900 border border-red-200 shadow-sm";
+                peaceBtn.className = "px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900";
+            } else {
+                img.src = 'faccia della pace.jpg';
+                peaceBtn.className = "px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 bg-white text-blue-900 border border-blue-200 shadow-sm";
+                warBtn.className = "px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 text-slate-600 hover:text-slate-900";
+            }
+
+            currentRegisterFilter = 'all';
+            updateRegisterButtons();
+            renderHotspots();
+            clearInspector();
+            resetZoom();
+        }
+
+        function filterRegister(reg) {
+            currentRegisterFilter = reg;
+            updateRegisterButtons();
+            renderHotspots();
+
+            const highlightBox = document.getElementById('register-highlight');
+            if(reg === 'all') {
+                highlightBox.style.opacity = '0';
+                resetZoom();
+            } else {
+                highlightBox.style.opacity = '1';
+                if(reg === 'top') {
+                    highlightBox.style.top = '5%';
+                    highlightBox.style.height = '30%';
+                    applyZoomAndPan(1.3, 0, 20);
+                } else if(reg === 'mid') {
+                    highlightBox.style.top = '36%';
+                    highlightBox.style.height = '30%';
+                    applyZoomAndPan(1.3, 0, 0);
+                } else if(reg === 'bot') {
+                    highlightBox.style.top = '68%';
+                    highlightBox.style.height = '30%';
+                    applyZoomAndPan(1.3, 0, -20);
+                }
+            }
+        }
+
+        function updateRegisterButtons() {
+            document.querySelectorAll('.reg-btn').forEach(btn => {
+                btn.className = "reg-btn px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 font-medium";
+            });
+            const activeBtn = document.getElementById('btn-reg-' + currentRegisterFilter);
+            if(activeBtn) {
+                activeBtn.className = "reg-btn px-3 py-1.5 rounded-lg bg-lapis-800 text-white font-semibold shadow-sm";
+            }
+        }
+
+        function renderHotspots() {
+            const layer = document.getElementById('hotspots-layer');
+            layer.innerHTML = '';
+
+            const list = hotspotsData[currentSide];
+            list.forEach((item, index) => {
+                if(currentRegisterFilter !== 'all' && item.register !== currentRegisterFilter) {
+                    return;
+                }
+
+                const pin = document.createElement('div');
+                pin.className = 'hotspot-pin';
+                pin.style.left = item.x + '%';
+                pin.style.top = item.y + '%';
+                pin.id = 'pin-' + index;
+                pin.title = item.title;
+
+                pin.innerHTML = `
+                    <div class="hotspot-pulse"></div>
+                    <div class="hotspot-inner">${index + 1}</div>
+                `;
+
+                pin.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    selectHotspot(index);
+                });
+
+                layer.appendChild(pin);
+            });
+        }
+
+        function toggleHotspotsVisibility() {
+            isHotspotsVisible = !isHotspotsVisible;
+            const layer = document.getElementById('hotspots-layer');
+            layer.style.display = isHotspotsVisible ? 'block' : 'none';
+            const btn = document.getElementById('btn-toggle-pins');
+            btn.innerHTML = isHotspotsVisible 
+                ? '<i class="fa-solid fa-location-dot text-amber-600"></i> <span class="hidden sm:inline">Punti Attivi</span>'
+                : '<i class="fa-regular fa-eye-slash text-slate-400"></i> <span class="hidden sm:inline">Punti Nascosti</span>';
+        }
+
+        function selectHotspot(index) {
+            const list = hotspotsData[currentSide];
+            if(index < 0 || index >= list.length) return;
+
+            currentHotspotIndex = index;
+            const item = list[index];
+
+            // Mark active pin
+            document.querySelectorAll('.hotspot-pin').forEach(p => p.classList.remove('active'));
+            const activePin = document.getElementById('pin-' + index);
+            if(activePin) activePin.classList.add('active');
+
+            // Show inspector
+            document.getElementById('inspector-placeholder').classList.add('hidden');
+            const content = document.getElementById('inspector-content');
+            content.classList.remove('hidden');
+
+            document.getElementById('insp-badge-reg').textContent = item.regTitle;
+            document.getElementById('insp-badge-side').textContent = currentSide === 'war' ? 'Pannello della Guerra' : 'Pannello della Pace';
+            document.getElementById('insp-title').textContent = item.title;
+            document.getElementById('insp-desc-1').textContent = item.desc1;
+            document.getElementById('insp-desc-2').textContent = item.desc2;
+            document.getElementById('insp-curiosity').textContent = item.curiosity;
+            document.getElementById('insp-index-indicator').textContent = `${index + 1} di ${list.length}`;
+
+            // Materials badges
+            const matContainer = document.getElementById('insp-materials');
+            matContainer.innerHTML = '';
+            item.materials.forEach(mat => {
+                const badge = document.createElement('span');
+                badge.className = 'px-2 py-0.5 rounded text-[10px] font-semibold bg-white text-lapis-800 border border-slate-200 shadow-2xs';
+                badge.textContent = mat;
+                matContainer.appendChild(badge);
+            });
+
+            // Smooth focus zoom to the hotspot
+            const panXCoord = (50 - item.x) * 2;
+            const panYCoord = (50 - item.y) * 2;
+            applyZoomAndPan(1.35, panXCoord, panYCoord);
+        }
+
+        function clearInspector() {
+            document.getElementById('inspector-content').classList.add('hidden');
+            document.getElementById('inspector-placeholder').classList.remove('hidden');
+            currentHotspotIndex = -1;
+            document.querySelectorAll('.hotspot-pin').forEach(p => p.classList.remove('active'));
+        }
+
+        function nextHotspot() {
+            const list = hotspotsData[currentSide];
+            const nextIdx = (currentHotspotIndex + 1) % list.length;
+            selectHotspot(nextIdx);
+        }
+
+        function prevHotspot() {
+            const list = hotspotsData[currentSide];
+            const prevIdx = (currentHotspotIndex - 1 + list.length) % list.length;
+            selectHotspot(prevIdx);
+        }
+
+        /* Zoom and Pan Utilities */
+        function adjustZoom(delta) {
+            zoomLevel = Math.max(0.8, Math.min(2.5, zoomLevel + delta));
+            applyZoomAndPan(zoomLevel, panX, panY);
+        }
+
+        function resetZoom() {
+            zoomLevel = 1.0;
+            panX = 0;
+            panY = 0;
+            applyZoomAndPan(1.0, 0, 0);
+        }
+
+        function applyZoomAndPan(scale, x, y) {
+            zoomLevel = scale;
+            panX = x;
+            panY = y;
+            const box = document.getElementById('image-transform-box');
+            box.style.transform = `scale(${scale}) translate(${x}px, ${y}px)`;
+            document.getElementById('zoom-text').textContent = Math.round(scale * 100) + '%';
+        }
+
+        /* ============================================================== */
+        /* TAB 2: 3D BOX CONTROLLER                                       */
+        /* ============================================================== */
+        function init3DController() {
+            const stage = document.getElementById('perspective-stage');
+            const box = document.getElementById('box3d-object');
+            if(!stage || !box) return;
+
+            stage.addEventListener('mousedown', (e) => {
+                is3DDragging = true;
+                last3DMouseX = e.clientX;
+                last3DMouseY = e.clientY;
+                stop3DAutoRotate();
+            });
+
+            window.addEventListener('mouseup', () => {
+                is3DDragging = false;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if(!is3DDragging) return;
+                const deltaX = e.clientX - last3DMouseX;
+                const deltaY = e.clientY - last3DMouseY;
+
+                rotY += deltaX * 0.5;
+                rotX -= deltaY * 0.5;
+                rotX = Math.max(-60, Math.min(60, rotX));
+
+                box.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+
+                last3DMouseX = e.clientX;
+                last3DMouseY = e.clientY;
+            });
+
+            // Touch events
+            stage.addEventListener('touchstart', (e) => {
+                if(e.touches.length === 1) {
+                    is3DDragging = true;
+                    last3DMouseX = e.touches[0].clientX;
+                    last3DMouseY = e.touches[0].clientY;
+                    stop3DAutoRotate();
+                }
+            });
+
+            window.addEventListener('touchend', () => {
+                is3DDragging = false;
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                if(!is3DDragging || e.touches.length !== 1) return;
+                const deltaX = e.touches[0].clientX - last3DMouseX;
+                const deltaY = e.touches[0].clientY - last3DMouseY;
+
+                rotY += deltaX * 0.5;
+                rotX -= deltaY * 0.5;
+                rotX = Math.max(-60, Math.min(60, rotX));
+
+                box.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+
+                last3DMouseX = e.touches[0].clientX;
+                last3DMouseY = e.touches[0].clientY;
+            });
+        }
+
+        function set3DPreset(view) {
+            stop3DAutoRotate();
+            const box = document.getElementById('box3d-object');
+            if(view === 'war') {
+                rotX = -5; rotY = 0;
+            } else if(view === 'peace') {
+                rotX = -5; rotY = 180;
+            } else if(view === 'side-left') {
+                rotX = 0; rotY = 90;
+            } else if(view === 'side-right') {
+                rotX = 0; rotY = -90;
+            }
+            box.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+        }
+
+        function start3DAutoRotate() {
+            if(autoRotateTimer) return;
+            const box = document.getElementById('box3d-object');
+            if(!box) return;
+            autoRotateTimer = setInterval(() => {
+                rotY = (rotY + 0.4) % 360;
+                box.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+            }, 30);
+            is3DAutoRotating = true;
+            const btn = document.getElementById('btn-3d-autorotate');
+            if(btn) btn.classList.add('bg-amber-100', 'text-amber-900', 'border-amber-300');
+        }
+
+        function stop3DAutoRotate() {
+            if(autoRotateTimer) {
+                clearInterval(autoRotateTimer);
+                autoRotateTimer = null;
+            }
+            is3DAutoRotating = false;
+            const btn = document.getElementById('btn-3d-autorotate');
+            if(btn) btn.classList.remove('bg-amber-100');
+        }
+
+        function toggle3DAutoRotate() {
+            if(is3DAutoRotating) stop3DAutoRotate();
+            else start3DAutoRotate();
+        }
+
+        /* ============================================================== */
+        /* TAB 4: MIND MAP RENDERER                                       */
+        /* ============================================================== */
+        function renderMindMap() {
+            const container = document.getElementById('mindmap-tree-container');
+            if(!container) return;
+            container.innerHTML = '';
+
+            mindMapStructure.forEach(branch => {
+                const branchCard = document.createElement('div');
+                branchCard.className = `mindmap-branch museum-card p-5 transition-all`;
+                branchCard.id = branch.id;
+
+                let childrenHTML = '';
+                branch.children.forEach(item => {
+                    childrenHTML += `
+                        <div class="flex items-start gap-3 text-xs sm:text-sm text-slate-700 py-2 border-b border-slate-100 last:border-0 hover:text-slate-900 transition">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
+                            <div>
+                                <strong class="text-slate-900 font-semibold">${item.label}:</strong>
+                                <span class="text-slate-600">${item.val}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                branchCard.innerHTML = `
+                    <div class="flex items-center justify-between cursor-pointer mb-3" onclick="toggleBranch('${branch.id}')">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-slate-100 text-lapis-800 flex items-center justify-center text-sm border border-slate-200">
+                                <i class="fa-solid ${branch.icon}"></i>
+                            </div>
+                            <h3 class="font-cinzel text-base font-bold text-slate-900">${branch.title}</h3>
+                        </div>
+                        <i class="branch-chevron fa-solid fa-chevron-down text-slate-400 transition-transform"></i>
+                    </div>
+                    <div class="branch-content pl-4 sm:pl-6 border-l-2 border-slate-200 space-y-1">
+                        ${childrenHTML}
+                    </div>
+                `;
+
+                container.appendChild(branchCard);
+            });
+        }
+
+        function toggleBranch(id) {
+            const card = document.getElementById(id);
+            const content = card.querySelector('.branch-content');
+            const chevron = card.querySelector('.branch-chevron');
+            if(content.style.display === 'none') {
+                content.style.display = 'block';
+                chevron.style.transform = 'rotate(0deg)';
+            } else {
+                content.style.display = 'none';
+                chevron.style.transform = 'rotate(-90deg)';
+            }
+        }
+
+        function expandAllMindMap() {
+            document.querySelectorAll('.branch-content').forEach(c => c.style.display = 'block');
+            document.querySelectorAll('.branch-chevron').forEach(c => c.style.transform = 'rotate(0deg)');
+        }
+
+        function collapseAllMindMap() {
+            document.querySelectorAll('.branch-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.branch-chevron').forEach(c => c.style.transform = 'rotate(-90deg)');
+        }
+
+        function searchMindMap(query) {
+            const q = query.toLowerCase().trim();
+            document.querySelectorAll('.mindmap-branch').forEach(branch => {
+                const text = branch.textContent.toLowerCase();
+                if(!q || text.includes(q)) {
+                    branch.style.display = 'block';
+                    if(q) {
+                        branch.querySelector('.branch-content').style.display = 'block';
+                    }
+                } else {
+                    branch.style.display = 'none';
+                }
+            });
+        }
+
+        /* ============================================================== */
+        /* TAB 5: 16-QUESTION QUIZ ENGINE                                 */
+        /* ============================================================== */
+        let userAnswers = {};
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            if(!container) return;
+            container.innerHTML = '';
+            userAnswers = {};
+
+            quizData.forEach((qItem, qIdx) => {
+                const card = document.createElement('div');
+                card.className = "museum-card p-6 transition-all";
+                card.id = `quiz-card-${qIdx}`;
+
+                let optionsHTML = '';
+                qItem.options.forEach((opt, optIdx) => {
+                    const letter = String.fromCharCode(65 + optIdx);
+                    optionsHTML += `
+                        <label id="opt-label-${qIdx}-${optIdx}" onclick="handleQuizOptionSelect(${qIdx}, ${optIdx})" class="quiz-option-label flex items-start gap-3 p-3.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 cursor-pointer transition">
+                            <input type="radio" name="q-${qIdx}" value="${optIdx}" class="mt-1 accent-amber-600">
+                            <div class="flex-1 text-sm text-slate-800">
+                                <strong class="text-lapis-800 mr-1.5">${letter})</strong> ${opt.text}
+                            </div>
+                        </label>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between text-xs font-mono text-slate-500 mb-2">
+                        <span class="font-bold">DOMANDA ${qIdx + 1} DI 16</span>
+                        <span id="badge-status-${qIdx}" class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">Non risposta</span>
+                    </div>
+                    <h3 class="font-bold text-slate-900 text-base mb-4 leading-snug">
+                        ${qItem.q}
+                    </h3>
+                    <div class="space-y-2.5 mb-4">
+                        ${optionsHTML}
+                    </div>
+                    <div id="quiz-feedback-${qIdx}" class="hidden p-4 rounded-xl border text-xs leading-relaxed space-y-2 mt-4">
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function handleQuizOptionSelect(qIdx, optIdx) {
+            userAnswers[qIdx] = optIdx;
+            const qItem = quizData[qIdx];
+            const isCorrect = qItem.options[optIdx].correct;
+
+            qItem.options.forEach((opt, oIdx) => {
+                const lbl = document.getElementById(`opt-label-${qIdx}-${oIdx}`);
+                lbl.classList.remove('border-emerald-500', 'bg-emerald-50', 'border-rose-500', 'bg-rose-50');
+                if(opt.correct) {
+                    lbl.classList.add('border-emerald-500', 'bg-emerald-50');
+                } else if(oIdx === optIdx && !opt.correct) {
+                    lbl.classList.add('border-rose-500', 'bg-rose-50');
+                }
+            });
+
+            const statusBadge = document.getElementById(`badge-status-${qIdx}`);
+            if(isCorrect) {
+                statusBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-bold border border-emerald-300";
+                statusBadge.innerHTML = '<i class="fa-solid fa-check mr-1"></i> Risposta Esatta';
+            } else {
+                statusBadge.className = "px-2.5 py-0.5 rounded-full text-[10px] bg-rose-100 text-rose-800 font-bold border border-rose-300";
+                statusBadge.innerHTML = '<i class="fa-solid fa-xmark mr-1"></i> Risposta Errata';
+            }
+
+            const fbBox = document.getElementById(`quiz-feedback-${qIdx}`);
+            fbBox.classList.remove('hidden');
+            if(isCorrect) {
+                fbBox.className = "p-4 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-950 text-xs leading-relaxed";
+                fbBox.innerHTML = `
+                    <div class="font-bold flex items-center gap-1.5 text-emerald-800 mb-1">
+                        <i class="fa-solid fa-circle-check"></i> Ottimo lavoro!
+                    </div>
+                    <p>${qItem.options[optIdx].exp}</p>
+                `;
+            } else {
+                fbBox.className = "p-4 rounded-xl border border-rose-300 bg-rose-50 text-rose-950 text-xs leading-relaxed";
+                const correctOpt = qItem.options.find(o => o.correct);
+                fbBox.innerHTML = `
+                    <div class="font-bold flex items-center gap-1.5 text-rose-800 mb-1">
+                        <i class="fa-solid fa-circle-xmark"></i> Spiegazione:
+                    </div>
+                    <p class="mb-2"><strong>La tua scelta:</strong> ${qItem.options[optIdx].exp}</p>
+                    <p class="text-emerald-900 font-medium"><strong>Risposta corretta:</strong> ${correctOpt.exp}</p>
+                `;
+            }
+
+            updateLiveScore();
+        }
+
+        function updateLiveScore() {
+            let correctCount = 0;
+            let answeredCount = Object.keys(userAnswers).length;
+
+            quizData.forEach((qItem, qIdx) => {
+                if(userAnswers[qIdx] !== undefined) {
+                    if(qItem.options[userAnswers[qIdx]].correct) {
+                        correctCount++;
+                    }
+                }
+            });
+
+            document.getElementById('quiz-live-score').textContent = `${correctCount} / 16`;
+
+            if(answeredCount === 16) {
+                const finalBox = document.getElementById('quiz-final-box');
+                finalBox.classList.remove('hidden');
+                document.getElementById('final-score-val').textContent = correctCount;
+
+                const icon = document.getElementById('final-badge-icon');
+                const title = document.getElementById('final-badge-title');
+                const desc = document.getElementById('final-badge-desc');
+
+                if(correctCount >= 15) {
+                    icon.className = "fa-solid fa-crown text-amber-600";
+                    title.textContent = "Lugal di Ur (Sovrano Supremo)";
+                    desc.textContent = "Punteggio perfetto o quasi! Conosci la civiltà sumera al pari degli antichi scribi reali.";
+                } else if(correctCount >= 12) {
+                    icon.className = "fa-solid fa-scroll text-yellow-600";
+                    title.textContent = "Gran Sacerdote della Ziggurat";
+                    desc.textContent = "Ottima conoscenza dell'archeologia mesopotamica e dei registri dello Stendardo.";
+                } else if(correctCount >= 8) {
+                    icon.className = "fa-solid fa-shield-halved text-blue-600";
+                    title.textContent = "Guerriero della Fanteria Sumera";
+                    desc.textContent = "Buon risultato! Conosci la maggior parte dei dettagli chiave dell'opera.";
+                } else {
+                    icon.className = "fa-solid fa-hammer text-slate-600";
+                    title.textContent = "Apprendista della Bottega Reale";
+                    desc.textContent = "Rileggi le schede dell'Esploratore e riprova per consolidare le tue conoscenze!";
+                }
+
+                finalBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function resetQuizState() {
+            renderQuiz();
+            document.getElementById('quiz-final-box').classList.add('hidden');
+            document.getElementById('quiz-live-score').textContent = `0 / 16`;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* ============================================================== */
+        /* LYRE AUDIO SYNTHESIZER (WEB AUDIO API)                         */
+        /* ============================================================== */
+        let audioCtx = null;
+        const lyreFrequencies = [293.66, 329.63, 349.23, 392.00, 440.00, 466.16, 523.25, 587.33];
+
+        function getAudioContext() {
+            if(!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if(audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function pluckLyreNote(noteIndex) {
+            const ctx = getAudioContext();
+            const freq = lyreFrequencies[noteIndex] || 440;
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            const filter = ctx.createBiquadFilter();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(freq * 3.5, ctx.currentTime);
+            filter.frequency.exponentialRampToValueAtTime(freq * 0.8, ctx.currentTime + 1.2);
+
+            gain.gain.setValueAtTime(0, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + 0.015);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.0);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 2.0);
+
+            const strings = document.querySelectorAll('.lyre-string');
+            if(strings[noteIndex]) {
+                strings[noteIndex].classList.add('plucked');
+                setTimeout(() => strings[noteIndex].classList.remove('plucked'), 200);
+            }
+        }
+
+        function pluckOnHover(idx) {
+            pluckLyreNote(idx);
+        }
+
+        function toggleLyreModal() {
+            const modal = document.getElementById('lyre-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        function playAncientMelody() {
+            const melody = [0, 2, 4, 3, 2, 0, 4, 5, 4, 2, 0, 7, 6, 4, 2, 0];
+            const timing = 350;
+            const btn = document.getElementById('btn-play-melody');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Esecuzione...';
+
+            melody.forEach((noteIdx, step) => {
+                setTimeout(() => {
+                    pluckLyreNote(noteIdx);
+                    if(step === melody.length - 1) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fa-solid fa-play"></i> Suona Melodia Antica Automatica';
+                    }
+                }, step * timing);
+            });
+        }
+
+        /* ============================================================== */
+        /* SPEECH SYNTHESIS (AUDIO GUIDE)                                 */
+        /* ============================================================== */
+        function toggleGlobalSpeech() {
+            if('speechSynthesis' in window) {
+                if(window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
+                    isSpeaking = false;
+                    document.getElementById('audio-guide-icon').className = 'fa-solid fa-volume-high';
+                } else {
+                    const introText = "Benvenuto nell'esplorazione interattiva dello Stendardo di Ur, capolavoro della civiltà sumera risalente al duemilacinquecento avanti Cristo. L'opera è suddivisa in due pannelli principali, la Guerra e la Pace, intarsiati con lapislazzuli, madreperla e calcare rosso su bitume. Seleziona i punti d'interesse per scoprire tutti i dettagli!";
+                    const utterance = new SpeechSynthesisUtterance(introText);
+                    utterance.lang = currentLang === 'it' ? 'it-IT' : 'en-US';
+                    utterance.rate = 1.0;
+                    utterance.onend = () => {
+                        isSpeaking = false;
+                        document.getElementById('audio-guide-icon').className = 'fa-solid fa-volume-high';
+                    };
+                    window.speechSynthesis.speak(utterance);
+                    isSpeaking = true;
+                    document.getElementById('audio-guide-icon').className = 'fa-solid fa-volume-xmark text-amber-600';
+                }
+            } else {
+                alert("Sintesi vocale non supportata dal tuo browser.");
+            }
+        }
+
+        function speakCurrentCard() {
+            if(!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const list = hotspotsData[currentSide];
+            if(currentHotspotIndex >= 0 && currentHotspotIndex < list.length) {
+                const item = list[currentHotspotIndex];
+                const text = `${item.title}. ${item.desc1} ${item.desc2} Curiosità: ${item.curiosity}`;
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = currentLang === 'it' ? 'it-IT' : 'en-US';
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        /* ============================================================== */
+        /* LANGUAGE TOGGLE (IT / EN)                                      */
+        /* ============================================================== */
+        function toggleLanguage() {
+            currentLang = currentLang === 'it' ? 'en' : 'it';
+            document.getElementById('btn-lang').textContent = currentLang.toUpperCase();
+            const toast = document.createElement('div');
+            toast.className = 'fixed bottom-4 right-4 bg-white border border-amber-500 text-amber-900 font-bold px-4 py-2 rounded-xl text-xs z-50 shadow-xl';
+            toast.textContent = currentLang === 'it' ? 'Lingua impostata: Italiano' : 'Language set: English (Dual Format)';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+    </script>
+</body>
+</html>
